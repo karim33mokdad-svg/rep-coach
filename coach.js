@@ -56,11 +56,15 @@
       metrics(lm) {
         const s = pickSide(lm, this.need);
         const hip = pt(lm, s, 'hip'), kne = pt(lm, s, 'kne'), ank = pt(lm, s, 'ank'), sh = pt(lm, s, 'sh');
-        return { primary: angle(hip, kne, ank), torso: fromVertical(hip, sh), hipBelowKnee: hip.y - kne.y, side: s };
+        const torso = fromVertical(hip, sh), shin = fromVertical(ank, kne);
+        // lean is judged against the shins: a torso roughly parallel to the shin is balanced for any limb proportions
+        return { primary: angle(hip, kne, ank), torso, shin, lean: torso - shin, thigh: fromVertical(kne, hip), side: s };
       },
       faults: [
-        { id: 'chest', when: 'rep', cue: 'Chest up', test: r => r.max.torso > 50,
-          detail: r => `Torso tipped ${r.max.torso.toFixed(0)}° forward. Brace, keep the bell tight to your chest, elbows inside the knees.` }
+        { id: 'chest', when: 'rep', cue: 'Chest up', test: r => r.max.lean > 20 && r.max.torso > 45,
+          detail: r => `Torso leaned ${r.max.lean.toFixed(0)}° further forward than your shins (${r.max.torso.toFixed(0)}° from vertical). Brace, sit between your heels, and keep the chest proud. If it keeps happening, tight ankles are the usual cause: try a small plate under the heels.` },
+        { id: 'hips', when: 'rep', cue: 'Lead with chest', test: r => (r.ascMax.torso ?? 0) - (r.atPeak.torso ?? 0) > 12,
+          detail: r => `On the way up your torso tipped a further ${((r.ascMax.torso ?? 0) - (r.atPeak.torso ?? 0)).toFixed(0)}° forward: the hips rose before the chest, turning the squat into a good-morning that loads the lower back. Drive chest and hips up together.` }
       ]
     },
 
@@ -318,13 +322,14 @@
         st.pre = st.pre || newStats(); acc(st.pre, m);
         if (x < T.start) {
           st.phase = 'descent';
-          st.cur = { t0: t, stats: newStats(), reached: false, tBottom: null, tPeak: t, xPeak: x, live: new Set(), preStats: st.pre };
+          st.cur = { t0: t, stats: newStats(), reached: false, tBottom: null, tPeak: t, xPeak: x, atPeak: { ...m }, asc: newStats(), live: new Set(), preStats: st.pre };
           st.pre = null;
         }
       }
       if (st.phase === 'descent' || st.phase === 'ascent') {
         const c = st.cur; acc(c.stats, m); activeLive.forEach(id => c.live.add(id));
-        if (x < c.xPeak) { c.xPeak = x; c.tPeak = t; }
+        if (x < c.xPeak) { c.xPeak = x; c.tPeak = t; c.atPeak = { ...m }; c.asc = newStats(); }
+        else if (c.reached) acc(c.asc, m); // the way up, measured from the deepest point
         const deepEnough = x < T.bottom && (!ex.bottomGate || ex.bottomGate(m));
         if (deepEnough && !c.reached) { c.reached = true; st.phase = 'ascent'; emit({ type: 'bottom', t }); }
         if (c.reached && x < T.bottom) c.tBottom = t; // still deep: the way up starts when it leaves
@@ -332,7 +337,7 @@
           if (c.reached && t - c.t0 >= ex.minRepMs) {
             st.reps++; st.lastRepT = t;
             const rep = { n: st.reps, t0: c.t0, t1: t, tPeak: c.tPeak, downMs: c.tPeak - c.t0, upMs: t - c.tPeak,
-              min: { ...c.stats.min }, max: { ...c.stats.max }, preMax: c.preStats ? c.preStats.max : {}, preMin: c.preStats ? c.preStats.min : {},
+              min: { ...c.stats.min }, max: { ...c.stats.max }, preMax: c.preStats ? c.preStats.max : {}, preMin: c.preStats ? c.preStats.min : {}, atPeak: c.atPeak, ascMax: { ...c.asc.max },
               liveFaults: [...c.live] };
             emit({ type: 'rep', n: st.reps, t });
             st.post = { t0: t, rep, statsPost: newStats(), maxX: x };

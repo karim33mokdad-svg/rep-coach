@@ -105,6 +105,22 @@ console.log('Squat');
   check('reps that never stand tall still count', r.sum.reps === 3, r.sum.reps);
   check('flagged "Stand tall"', faultIds(r.sum).includes('top'), JSON.stringify(faultIds(r.sum))); }
 
+{ // bodyweight squat, torso leaning with the shins (≈55° at the bottom): normal, must stay clean
+  const r = run('squat', sweep(175, 85, 5).map(k => sideStand({ knee: k, torso: (180 - k) / 2 + 8 })));
+  check('bodyweight lean parallel to shins counted', r.sum.reps === 5, r.sum.reps);
+  check('bodyweight lean parallel to shins stays clean', r.sum.clean === 5, JSON.stringify(faultIds(r.sum))); }
+{ // hips shoot up first: torso tips a further ~20° forward early in the ascent
+  const fr = [];
+  for (let n = 0; n < 3; n++) {
+    for (let i = 0; i < 10; i++) fr.push(sideStand({ knee: 175, torso: 5 }));
+    for (let i = 0; i <= 24; i++) { const k = 175 - 90 * i / 24; fr.push(sideStand({ knee: k, torso: (180 - k) / 2 + 5 })); }
+    for (let i = 0; i <= 24; i++) { const k = 85 + 90 * i / 24; const p = Math.min(1, i / 14); const torso = i <= 14 ? 52.5 + 18 * Math.sin(Math.PI * p) : 52.5 * (24 - i) / 10 + 5 * (i - 14) / 10; fr.push(sideStand({ knee: k, torso })); }
+  }
+  for (let i = 0; i < 45; i++) fr.push(sideStand({ knee: 175, torso: 5 }));
+  const r = run('squat', fr);
+  check('hips-first squats counted', r.sum.reps === 3, r.sum.reps);
+  check('flagged "Lead with chest"', faultIds(r.sum).includes('hips'), JSON.stringify(faultIds(r.sum))); }
+
 console.log('KB swing');
 { // good hinge: hip closes to ~95 with soft knee and torso ~70° forward
   const fr = sweep(178, 95, 6, 14, 6).map(h => sideStand({ knee: 165, torso: (178 - h) * 0.85 + 2 }));

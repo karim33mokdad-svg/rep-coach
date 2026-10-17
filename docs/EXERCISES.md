@@ -17,7 +17,8 @@ Angles are in degrees. *Start / bottom / top* are the rep state machine threshol
 ## Faults
 | Exercise | Id | When judged | Test | Spoken cue | Why it matters for Karim |
 |---|---|---|---|---|---|
-| Squat | chest | rep | max torso lean >50° | Chest up | Chest drop under fatigue preceded his back irritation |
+| Squat | chest | rep | torso leans >20° further forward than the shins, and >45° from vertical | Chest up | Chest drop under fatigue preceded his back irritation. Judged against the shins (a torso roughly parallel to the shin is balanced for any limb length) so normal bodyweight lean isn't flagged. Changed from a fixed 50° after the owner's first live test (Oct 17) flagged good bodyweight squats |
+| Squat | hips | rep | torso tips >12° further forward on the way up than at the bottom | Lead with chest | Hips rising before the chest turns the squat into a good-morning and loads the lower back |
 | Swing | squat | rep | min knee <120° and max torso <45° | Hinge, don’t squat | The most common cause of lower-back strain in swings |
 | Swing | knees | rep | min knee <120° and torso ≥45° | Less knee | Hip hinge with too much knee |
 | Swing | short | rep | min hip >110° | Hips back | Glutes never load, so the back does the work |
