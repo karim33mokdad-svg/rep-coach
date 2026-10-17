@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14161a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Rep Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a gym-floor scoreboard. Home is a stack of exercise "bells"; Live is the camera, full-bleed, with the count big enough to read from 3 m. */
+:root{
+  color-scheme: dark;
+  --rubber:#14161a;      /* gym-floor charcoal */
+  --rubber-2:#1c1f25;
+  --rubber-3:#262a32;
+  --chalk:#eef0ea;       /* chalk white */
+  --chalk-dim:#9aa0a8;
+  --line:#2f343d;
+  --go:#f3c13a;          /* 16 kg competition bell yellow = primary action */
+  --good:#4cc38a;
+  --fix:#ff5a4e;
+  --kb8:#ff7eb6; --kb12:#4a9df8; --kb16:#f3c13a; --kb20:#a77bf3; --kb24:#4cc38a;
+  --display:'Big Shoulders Display','Arial Narrow',Impact,sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--rubber);color:var(--chalk);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--go);outline-offset:2px}
+[hidden]{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* ── Home ── */
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-weight:900;font-size:44px;line-height:.9;margin:0;letter-spacing:.5px;text-transform:uppercase}
+.brand h1 span{color:var(--go)}
+.brand p{margin:0;color:var(--chalk-dim);font-size:13px}
+.status{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--chalk-dim)}
+.pill.ok{color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,transparent)}
+.pill.bad{color:var(--fix);border-color:color-mix(in srgb,var(--fix) 40%,transparent)}
+.lbl{font-family:var(--mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--chalk-dim);margin:26px 0 10px}
+.ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ex{position:relative;text-align:left;background:var(--rubber-2);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px 16px;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;overflow:hidden}
+.ex::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--bell,var(--go))}
+.ex b{font-family:var(--display);font-weight:800;font-size:22px;line-height:1;text-transform:uppercase;letter-spacing:.4px}
+.ex small{color:var(--chalk-dim);font-size:12px;line-height:1.3}
+.ex .view{font-family:var(--mono);font-size:10px;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:1px}
+.ex[aria-pressed="true"]{border-color:var(--bell);background:color-mix(in srgb,var(--bell) 12%,var(--rubber-2))}
+.setup{background:var(--rubber-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:14px}
+.setup p{margin:0;color:var(--chalk-dim);font-size:13px}
+.setup p strong{color:var(--chalk);font-weight:600}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.field{display:grid;gap:4px}
+.field label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--chalk-dim)}
+.step{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--rubber)}
+.step button{width:40px;height:42px;border:0;background:transparent;font-size:20px;color:var(--chalk-dim)}
+.step input{flex:1;min-width:0;width:100%;height:42px;border:0;background:transparent;text-align:center;font-family:var(--mono);font-size:16px;font-variant-numeric:tabular-nums}
+select{height:44px;width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--rubber);padding:0 10px}
+@media (max-width:520px){.ex-grid .ex:last-child:nth-child(odd){grid-column:1/-1}}
+.toggles{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--chalk-dim)}
+.toggles label{display:flex;align-items:center;gap:6px}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn{border:0;border-radius:12px;padding:15px 18px;font-weight:600;font-size:15px}
+.btn.go{background:var(--go);color:#1a1606;flex:2;min-width:180px;font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:.8px;text-transform:uppercase;padding:12px 18px}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--chalk);flex:1;min-width:140px}
+.note{font-size:13px;color:var(--chalk-dim);border-left:3px solid var(--line);padding:2px 0 2px 12px;margin-top:14px}
+.note.warn{border-color:var(--fix);color:var(--chalk)}
+.history{display:grid;gap:8px}
+.hrow{display:grid;grid-template-columns:1fr auto;gap:2px 12px;background:var(--rubber-2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:13px}
+.hrow .n{font-weight:600}
+.hrow .d{color:var(--chalk-dim);font-family:var(--mono);font-size:11px}
+.hrow .s{grid-row:span 2;align-self:center;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+
+/* ── Live ── */
+#live{position:fixed;inset:0;background:#000;z-index:5;display:flex;flex-direction:column}
+.stage{position:relative;flex:1;overflow:hidden}
+.stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mirror{transform:scaleX(-1)}
+.hud-top{position:absolute;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 12px) max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;background:linear-gradient(rgba(0,0,0,.7),transparent)}
+.count{font-family:var(--display);font-weight:900;line-height:.8;font-size:min(34vw,220px);font-variant-numeric:tabular-nums;text-shadow:0 4px 24px rgba(0,0,0,.6);transition:color .2s}
+.count small{font-size:.32em;color:var(--chalk-dim);font-weight:800;margin-left:4px}
+.count.flash{color:var(--go)}
+.meta{text-align:right;display:grid;gap:6px;justify-items:end}
+.meta .name{font-family:var(--display);font-weight:800;font-size:24px;text-transform:uppercase;letter-spacing:.5px}
+.meta .set{font-family:var(--mono);font-size:12px;color:var(--chalk-dim)}
+.track{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid var(--line)}
+.track.on{color:var(--good)} .track.off{color:var(--fix)}
+.clean{font-family:var(--mono);font-size:12px}
+.clean b{color:var(--good)} .clean i{font-style:normal;color:var(--fix)}
+.cue{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:110px;text-align:center;font-family:var(--display);font-weight:900;
+  font-size:min(14vw,84px);line-height:.95;text-transform:uppercase;letter-spacing:.5px;color:var(--fix);text-shadow:0 3px 20px rgba(0,0,0,.8);opacity:0;transition:opacity .2s}
+.cue.show{opacity:1}
+.cue.goodcue{color:var(--good)}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(10,11,14,.72);text-align:center;padding:24px}
+.overlay .big{font-family:var(--display);font-weight:900;font-size:min(42vw,240px);line-height:.85;font-variant-numeric:tabular-nums}
+.overlay .sub{font-family:var(--mono);font-size:13px;color:var(--chalk-dim);max-width:34ch}
+.overlay .title{font-family:var(--display);font-weight:800;font-size:28px;text-transform:uppercase}
+.bar{display:flex;gap:8px;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 10px) max(16px,env(safe-area-inset-left,0px));background:var(--rubber)}
+.bar .btn{flex:1;padding:14px 8px;font-size:14px}
+.bar .end{background:var(--go);color:#1a1606;font-weight:700}
+.bar .alt{background:var(--rubber-3);color:var(--chalk)}
+.readout{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:12px;font-family:var(--mono);font-size:11px;color:var(--chalk-dim);display:flex;gap:12px;flex-wrap:wrap}
+.readout b{color:var(--chalk);font-weight:500;font-variant-numeric:tabular-nums}
+
+/* ── Summary ── */
+.sum{margin-top:8px;display:grid;gap:10px}
+.sum-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.sum-head .big{font-family:var(--display);font-weight:900;font-size:72px;line-height:.85}
+.sum-head .of{font-family:var(--mono);color:var(--chalk-dim);font-size:13px}
+.fix{background:var(--rubber-2);border:1px solid var(--line);border-left:4px solid var(--fix);border-radius:12px;padding:12px 14px}
+.fix b{display:block;font-family:var(--display);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.4px}
+.fix p{margin:4px 0 0;font-size:13px;color:var(--chalk-dim)}
+.fix.ok{border-left-color:var(--good)}
+.reps{display:flex;gap:4px;flex-wrap:wrap}
+.reps span{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-family:var(--mono);font-size:12px;background:color-mix(in srgb,var(--good) 22%,transparent);color:var(--good)}
+.reps span.f{background:color-mix(in srgb,var(--fix) 22%,transparent);color:var(--fix)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:6px 0;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ═══ HOME ═══ -->
+<main id="home" class="wrap">
+  <div class="brand">
+    <h1>Rep <span>Coach</span></h1>
+    <p>Counts your reps. Calls your form.</p>
+  </div>
+  <div class="status" id="status"><span class="pill" id="sModel">Loading pose model…</span></div>
+
+  <div class="lbl">Exercise</div>
+  <div class="ex-grid" id="exGrid"></div>
+
+  <div class="lbl">Set up</div>
+  <div class="setup">
+    <p id="setupText"></p>
+    <div class="row">
+      <div class="field"><label for="target" id="targetLbl">Target reps</label>
+        <div class="step"><button type="button" data-step="target:-1" aria-label="Fewer">−</button><input id="target" type="number" inputmode="numeric" value="8" min="1" max="100"><button type="button" data-step="target:1" aria-label="More">+</button></div></div>
+      <div class="field"><label for="sets">Sets</label>
+        <div class="step"><button type="button" data-step="sets:-1" aria-label="Fewer">−</button><input id="sets" type="number" inputmode="numeric" value="3" min="1" max="10"><button type="button" data-step="sets:1" aria-label="More">+</button></div></div>
+      <div class="field"><label for="rest">Rest (s)</label>
+        <div class="step"><button type="button" data-step="rest:-15" aria-label="Less">−</button><input id="rest" type="number" inputmode="numeric" value="90" min="0" max="600" step="15"><button type="button" data-step="rest:15" aria-label="More">+</button></div></div>
+      <div class="field"><label for="load">Load (kg)</label>
+        <div class="step"><button type="button" data-step="load:-2" aria-label="Lighter">−</button><input id="load" type="number" inputmode="decimal" value="16" min="0" max="200"><button type="button" data-step="load:2" aria-label="Heavier">+</button></div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="camSel">Camera</label>
+        <select id="camSel"><option value="environment">Back camera</option><option value="user">Front camera (selfie)</option></select></div>
+      <div class="field"><label for="modelSel">Tracking model</label>
+        <select id="modelSel"><option value="1">Accurate</option><option value="0">Fast (older phones)</option></select></div>
+    </div>
+    <div class="toggles">
+      <label><input type="checkbox" id="voice" checked> Voice coach</label>
+      <label><input type="checkbox" id="countAloud" checked> Count reps aloud</label>
+      <label><input type="checkbox" id="autoEnd" checked> Hands-free (auto end set + rest)</label>
+    </div>
+  </div>
+
+  <div class="cta">
+    <button class="btn go" id="startBtn" type="button">Start set</button>
+    <label class="btn ghost" for="videoIn" style="text-align:center">Analyse a video</label>
+    <input id="videoIn" type="file" accept="video/*" hidden>
+  </div>
+  <div class="note" id="envNote" hidden></div>
+
+  <section id="summary" hidden>
+    <div class="lbl" id="sumLbl">Last set</div>
+    <div class="sum" id="sumBody"></div>
+  </section>
+
+  <div class="lbl">History</div>
+  <div class="history" id="history"></div>
+  <div class="cta">
+    <button class="btn ghost" id="copyBtn" type="button">Copy today’s log</button>
+    <button class="btn ghost" id="exportBtn" type="button">Export all (JSON)</button>
+  </div>
+  <p class="note">Video stays on your phone. Pose tracking runs on-device; nothing is uploaded.</p>
+</main>
+
+<!-- ═══ LIVE ═══ -->
+<section id="live" hidden>
+  <div class="stage" id="stage">
+    <video id="vid" playsinline muted></video>
+    <canvas id="ov"></canvas>
+    <div class="hud-top">
+      <div class="count" id="count">0<small id="countOf">/8</small></div>
+      <div class="meta">
+        <div class="name" id="liveName">Squat</div>
+        <div class="set" id="liveSet">Set 1 of 3</div>
+        <div class="track off" id="track">Finding you…</div>
+        <div class="clean" id="cleanTally"></div>
+      </div>
+    </div>
+    <div class="cue" id="cue"></div>
+    <div class="readout" id="readout"></div>
+    <div class="overlay" id="ovl" hidden><div class="title" id="ovlTitle"></div><div class="big" id="ovlBig"></div><div class="sub" id="ovlSub"></div></div>
+  </div>
+  <div class="bar">
+    <button class="btn alt" id="quitBtn" type="button">Finish</button>
+    <button class="btn alt" id="flipBtn" type="button">Flip camera</button>
+    <button class="btn end" id="endBtn" type="button">End set</button>
+  </div>
+</section>
+
+<script src="coach.js"></script>
+<script>
+(() => {
+'use strict';
+const RC = window.RepCoach;
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const KEY_HIST = 'repcoach-history-v1', KEY_PREF = 'repcoach-prefs-v1';
+
+// ── Exercise picker ──
+const order = ['squat', 'swing', 'pushup', 'lunge', 'press', 'curl', 'pullup', 'negative', 'plank'];
+let exId = store.get(KEY_PREF, {}).ex || 'squat';
+function renderGrid() {
+  $('exGrid').innerHTML = order.map(id => {
+    const e = RC.EX[id];
+    return `<button type="button" class="ex" data-ex="${id}" aria-pressed="${id === exId}" style="--bell:var(--${e.bell})">
+      <span class="view">${e.view === 'side' ? 'Side view' : 'Front view'}${e.hold ? ' · hold' : ''}</span>
+      <b>${e.name}</b><small>${e.kit}</small></button>`;
+  }).join('');
+  const e = RC.EX[exId];
+  $('setupText').innerHTML = `<strong>${e.view === 'side' ? 'Side-on.' : 'Facing the camera.'}</strong> ${e.setup}`;
+  $('targetLbl').textContent = e.hold ? 'Target seconds' : 'Target reps';
+}
+$('exGrid').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-ex]'); if (!b) return;
+  exId = b.dataset.ex;
+  const e = RC.EX[exId];
+  if (e.hold && +$('target').value < 15) $('target').value = 30;
+  if (!e.hold && +$('target').value > 30) $('target').value = 8;
+  savePrefs(); renderGrid();
+});
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-step]'); if (!b) return;
+  const [id, d] = b.dataset.step.split(':'); const el = $(id);
+  el.value = Math.max(+el.min || 0, Math.min(+el.max || 999, (+el.value || 0) + +d)); savePrefs();
+});
+function savePrefs() {
+  store.set(KEY_PREF, { ex: exId, target: +$('target').value, sets: +$('sets').value, rest: +$('rest').value, load: +$('load').value,
+    cam: $('camSel').value, model: $('modelSel').value, voice: $('voice').checked, count: $('countAloud').checked, auto: $('autoEnd').checked });
+}
+(function loadPrefs() {
+  const p = store.get(KEY_PREF, null); if (!p) return;
+  for (const [k, id] of [['target', 'target'], ['sets', 'sets'], ['rest', 'rest'], ['load', 'load'], ['cam', 'camSel'], ['model', 'modelSel']]) if (p[k] != null) $(id).value = p[k];
+  for (const [k, id] of [['voice', 'voice'], ['count', 'countAloud'], ['auto', 'autoEnd']]) if (p[k] != null) $(id).checked = p[k];
+})();
+['target', 'sets', 'rest', 'load', 'camSel', 'modelSel', 'voice', 'countAloud', 'autoEnd'].forEach(id => $(id).addEventListener('change', savePrefs));
+renderGrid();
+
+// ── Environment checks ──
+const secure = window.isSecureContext;
+if (!secure) { $('envNote').hidden = false; $('envNote').className = 'note warn'; $('envNote').textContent = 'The camera only works over HTTPS. Open this from its https:// address, or use “Analyse a video”.'; }
+
+// ── Voice ──
+const voice = {
+  ok: 'speechSynthesis' in window, last: 0, v: null,
+  pick() { if (!this.ok) return; const vs = speechSynthesis.getVoices(); this.v = vs.find(v => /en[-_](GB|US|AU)/.test(v.lang) && /Daniel|Samantha|Google|Natural|Premium|Enhanced/.test(v.name)) || vs.find(v => /^en/.test(v.lang)) || null; },
+  say(text, { urgent = false, rate = 1.05 } = {}) {
+    if (!this.ok || !$('voice').checked) return;
+    if (urgent) speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.rate = rate; u.pitch = 1; if (this.v) u.voice = this.v;
+    speechSynthesis.speak(u);
+  },
+  unlock() { if (this.ok) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } }
+};
+if (voice.ok) { voice.pick(); speechSynthesis.onvoiceschanged = () => voice.pick(); }
+const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+
+// ── Pose model ──
+let pose = null, modelReady = false;
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+const MP_LOCAL = 'mp/', MP_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/';
+let mpBase = MP_LOCAL;
+async function initModel() {
+  try { await loadScript(MP_LOCAL + 'pose.js'); }
+  catch (e) { mpBase = MP_CDN; await loadScript(MP_CDN + 'pose.js'); }
+  pose = new Pose({ locateFile: f => mpBase + f });
+  pose.setOptions({ modelComplexity: +$('modelSel').value, smoothLandmarks: true, enableSegmentation: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+  pose.onResults(onResults);
+  await pose.initialize();
+  modelReady = true;
+  $('sModel').textContent = 'Pose model ready'; $('sModel').className = 'pill ok';
+}
+initModel().catch(e => { $('sModel').textContent = 'Pose model failed to load'; $('sModel').className = 'pill bad'; console.error(e); });
+$('modelSel').addEventListener('change', () => pose && pose.setOptions({ modelComplexity: +$('modelSel').value }));
+
+// ── Live session ──
+const vid = $('vid'), ov = $('ov'), ctx = ov.getContext('2d');
+let stream = null, running = false, busy = false, source = 'camera';
+let tracker = null, session = null, setIdx = 0, phase = 'idle'; // idle | countdown | work | rest | done
+let lastRepAt = 0, lastShown = 0, cueTimer = 0, wake = null, restTimer = null, holdSpokenAt = 0;
+
+async function startCamera() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  const facing = $('camSel').value;
+  stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+  vid.srcObject = stream; vid.removeAttribute('src'); await vid.play();
+  const mirror = facing === 'user';
+  vid.classList.toggle('mirror', mirror); ov.classList.toggle('mirror', mirror);
+}
+
+async function begin(fromVideoFile) {
+  if (!modelReady) { flashNote('The pose model is still loading. Give it a few seconds.'); return; }
+  voice.unlock();
+  source = fromVideoFile ? 'file' : 'camera';
+  session = { id: Date.now(), date: new Date().toISOString(), ex: exId, name: RC.EX[exId].name, load: +$('load').value,
+    target: +$('target').value, setsPlanned: +$('sets').value, sets: [] };
+  setIdx = 0;
+  $('home').hidden = true; $('live').hidden = false;
+  $('liveName').textContent = RC.EX[exId].name;
+  try {
+    if (source === 'camera') await startCamera();
+    else { vid.srcObject = null; vid.src = fromVideoFile; vid.loop = false; vid.classList.remove('mirror'); ov.classList.remove('mirror'); await vid.play(); vid.pause(); }
+  } catch (e) {
+    showOverlay('Camera blocked', '', e.name === 'NotAllowedError' ? 'Allow camera access for this site in your browser settings, then try again.' : 'Could not start the camera (' + e.name + ').');
+    $('endBtn').hidden = true; return;
+  }
+  try { wake = await navigator.wakeLock?.request('screen'); } catch (e) {}
+  running = true; requestAnimationFrame(loop);
+  startSet();
+}
+
+function startSet() {
+  tracker = RC.createTracker(exId);
+  lastRepAt = 0; lastShown = 0; holdSpokenAt = 0;
+  const e = RC.EX[exId];
+  $('countOf').textContent = e.hold ? 's' : '/' + session.target;
+  $('count').firstChild.nodeValue = '0';
+  $('liveSet').textContent = `Set ${setIdx + 1} of ${session.setsPlanned}`;
+  $('cleanTally').innerHTML = ''; $('endBtn').hidden = false;
+  if (source === 'file') { phase = 'work'; hideOverlay(); vid.currentTime = 0; vid.play(); return; }
+  phase = 'countdown';
+  let n = 3; showOverlay(`Set ${setIdx + 1}`, n, e.view === 'side' ? 'Stand side-on to the camera' : 'Face the camera');
+  voice.say(`Set ${setIdx + 1}. ${e.name}. Three`, { urgent: true });
+  const iv = setInterval(() => {
+    n--; if (phase !== 'countdown') { clearInterval(iv); return; }
+    if (n > 0) { $('ovlBig').textContent = n; voice.say(words[n]); }
+    else { clearInterval(iv); hideOverlay(); phase = 'work'; voice.say('Go'); lastRepAt = performance.now(); }
+  }, 1000);
+}
+
+function endSet(reason) {
+  if (phase !== 'work' || !tracker) return;
+  phase = 'rest';
+  const s = tracker.summary(); s.load = session.load; s.endedBy = reason;
+  session.sets.push(s);
+  const e = RC.EX[exId];
+  let line;
+  if (e.hold) line = `Set done. ${Math.round(s.holdGoodMs / 1000)} seconds of good form.`;
+  else line = `Set done. ${s.reps} reps, ${s.clean} clean.` + (s.faults[0] ? ` Main fix: ${s.faults[0].cue}.` : ' Great form.');
+  voice.say(line, { urgent: true });
+  if (source === 'file') { vid.pause(); finishSession(); return; }
+  if (setIdx + 1 >= session.setsPlanned) { setTimeout(finishSession, 2500); showOverlay('Session done', s.reps || Math.round(s.holdGoodMs / 1000), line); return; }
+  // rest
+  let r = +$('rest').value;
+  showOverlay('Rest', fmt(r), line);
+  clearInterval(restTimer);
+  restTimer = setInterval(() => {
+    r--; $('ovlBig').textContent = fmt(r);
+    if (r === 10) voice.say('Ten seconds');
+    if (r <= 0) { clearInterval(restTimer); setIdx++; if ($('autoEnd').checked) startSet(); else showOverlay('Ready', '▶', 'Tap “End set” to start the next set'); }
+  }, 1000);
+}
+const fmt = s => s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : String(s);
+
+function finishSession() {
+  running = false; phase = 'idle'; clearInterval(restTimer);
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  try { wake && wake.release(); } catch (e) {} wake = null;
+  speechSynthesis?.cancel?.();
+  $('live').hidden = true; $('home').hidden = false;
+  if (session && session.sets.length) {
+    const h = store.get(KEY_HIST, []); h.unshift(slim(session)); store.set(KEY_HIST, h.slice(0, 200));
+    renderSummary(session); renderHistory();
+  }
+  session = null; hideOverlay();
+}
+function slim(s) { // keep the log small: per-rep timing and faults, no raw angle stats
+  return { ...s, sets: s.sets.map(x => ({ reps: x.reps, clean: x.clean, partials: x.partials, holdMs: x.holdMs, holdGoodMs: x.holdGoodMs,
+    avgDownMs: x.avgDownMs, avgUpMs: x.avgUpMs, faults: x.faults.map(f => ({ id: f.id, cue: f.cue, n: f.n, detail: f.detail })),
+    perRep: x.reps_detail.map(r => ({ n: r.n, down: Math.round(r.downMs), up: Math.round(r.upMs), f: r.faults.map(f => f.id) })) })) };
+}
+
+$('startBtn').addEventListener('click', () => begin(false));
+$('videoIn').addEventListener('change', ev => { const f = ev.target.files[0]; if (f) begin(URL.createObjectURL(f)); ev.target.value = ''; });
+$('endBtn').addEventListener('click', () => {
+  if (phase === 'work') endSet('button');
+  else if (phase === 'rest') { clearInterval(restTimer); setIdx++; startSet(); }
+});
+$('quitBtn').addEventListener('click', () => { if (phase === 'work') endSet('finish'); finishSession(); });
+$('flipBtn').addEventListener('click', async () => { $('camSel').value = $('camSel').value === 'user' ? 'environment' : 'user'; savePrefs(); if (source === 'camera') { try { await startCamera(); } catch (e) {} } });
+vid.addEventListener('ended', () => { if (source === 'file' && phase === 'work') endSet('video-end'); });
+
+async function loop() {
+  if (!running) return;
+  if (pose && vid.readyState >= 2 && !busy && !(source === 'file' && vid.paused)) {
+    busy = true;
+    try { await pose.send({ image: vid }); } catch (e) { console.warn(e); }
+    busy = false;
+  }
+  requestAnimationFrame(loop);
+}
+
+const BONES = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28], [27, 31], [28, 32], [27, 29], [28, 30]];
+function onResults(r) {
+  if (ov.width !== vid.videoWidth) { ov.width = vid.videoWidth || 720; ov.height = vid.videoHeight || 1280; }
+  ctx.clearRect(0, 0, ov.width, ov.height);
+  const lm = r.poseLandmarks;
+  const t = source === 'file' ? vid.currentTime * 1000 : performance.now();
+  if (phase !== 'work' || !tracker) { if (lm) draw(lm, []); return; }
+  const o = tracker.update(lm || null, t);
+  if (lm) draw(lm, o.live);
+  // tracking pill
+  $('track').textContent = o.tracking ? 'Tracking' : 'Step into frame';
+  $('track').className = 'track ' + (o.tracking ? 'on' : 'off');
+  // events → UI + voice
+  const e = RC.EX[exId];
+  for (const ev of o.events) {
+    if (ev.type === 'rep') {
+      lastRepAt = performance.now();
+      const c = $('count'); c.firstChild.nodeValue = ev.n; c.classList.add('flash'); setTimeout(() => c.classList.remove('flash'), 250);
+      if ($('countAloud').checked) voice.say(words[ev.n] || String(ev.n));
+      if (!e.hold && ev.n === session.target) voice.say('Target hit');
+    }
+    if (ev.type === 'cue') { showCue(ev.text); voice.say(ev.text, { urgent: ev.id.startsWith('live') }); }
+    if (ev.type === 'repJudged') {
+      $('cleanTally').innerHTML = `<b>${o.clean} clean</b>` + (o.reps - o.clean > 0 ? ` · <i>${o.reps - o.clean} to fix</i>` : '');
+    }
+  }
+  if (e.hold) {
+    const secs = Math.floor(o.holdGoodMs / 1000);
+    if (secs !== lastShown) { $('count').firstChild.nodeValue = secs; lastShown = secs; if (secs && secs % 10 === 0 && secs !== holdSpokenAt) { holdSpokenAt = secs; voice.say(String(secs)); } }
+    if ($('autoEnd').checked && secs >= session.target) endSet('target');
+  } else if ($('autoEnd').checked && o.reps > 0 && performance.now() - lastRepAt > 9000 && o.phase === 'top') {
+    endSet('idle');
+  }
+  // readout
+  const m = o.metrics;
+  const LABEL = { primary: 'joint', torso: 'torso lean', knee: 'knee', line: 'body line', upperArm: 'upper arm' };
+  if (m) $('readout').innerHTML = Object.entries(m).filter(([k, v]) => typeof v === 'number' && LABEL[k])
+    .map(([k, v]) => `<span>${LABEL[k]} <b>${v.toFixed(0)}°</b></span>`).join('');
+}
+function draw(lm, live) {
+  const W = ov.width, H = ov.height, bad = live.length > 0;
+  ctx.lineWidth = Math.max(3, W / 180); ctx.lineCap = 'round';
+  ctx.strokeStyle = bad ? 'rgba(255,90,78,.95)' : 'rgba(243,193,58,.9)';
+  for (const [a, b] of BONES) {
+    if ((lm[a].visibility ?? 1) < .4 || (lm[b].visibility ?? 1) < .4) continue;
+    ctx.beginPath(); ctx.moveTo(lm[a].x * W, lm[a].y * H); ctx.lineTo(lm[b].x * W, lm[b].y * H); ctx.stroke();
+  }
+  ctx.fillStyle = '#eef0ea';
+  for (const i of [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]) {
+    if ((lm[i].visibility ?? 1) < .4) continue;
+    ctx.beginPath(); ctx.arc(lm[i].x * W, lm[i].y * H, Math.max(4, W / 140), 0, 7); ctx.fill();
+  }
+}
+function showCue(text) {
+  const c = $('cue'); c.textContent = text; c.classList.add('show');
+  clearTimeout(cueTimer); cueTimer = setTimeout(() => c.classList.remove('show'), 2200);
+}
+function showOverlay(title, big, sub) { $('ovl').hidden = false; $('ovlTitle').textContent = title; $('ovlBig').textContent = big; $('ovlSub').textContent = sub || ''; }
+function hideOverlay() { $('ovl').hidden = true; }
+function flashNote(t) { $('envNote').hidden = false; $('envNote').className = 'note warn'; $('envNote').textContent = t; }
+
+// ── Summary & history ──
+function renderSummary(s) {
+  $('summary').hidden = false;
+  $('sumLbl').textContent = `${s.name} · ${s.load ? s.load + ' kg · ' : ''}${new Date(s.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  const e = RC.EX[s.ex];
+  const tot = s.sets.reduce((a, x) => a + (e.hold ? Math.round(x.holdGoodMs / 1000) : x.reps), 0);
+  const clean = s.sets.reduce((a, x) => a + x.clean, 0);
+  const tally = {}; s.sets.forEach(x => x.faults.forEach(f => { tally[f.id] = tally[f.id] || { ...f, n: 0 }; tally[f.id].n += f.n; }));
+  const faults = Object.values(tally).sort((a, b) => b.n - a.n);
+  let h = `<div class="sum-head"><span class="big">${tot}</span><span class="of">${e.hold ? 'seconds of clean hold' : `reps · ${clean} clean`} across ${s.sets.length} set${s.sets.length > 1 ? 's' : ''}</span></div>`;
+  if (faults.length) h += faults.slice(0, 3).map(f => `<div class="fix"><b>${f.cue} · ${f.n}×</b><p>${f.detail}</p></div>`).join('');
+  else if (!e.hold) h += `<div class="fix ok"><b>Clean session</b><p>No faults flagged. Next time add a rep or a little load.</p></div>`;
+  if (!e.hold) h += s.sets.map((x, i) => `<div><div class="lbl" style="margin:8px 0 6px">Set ${i + 1}${x.partials ? ` · ${x.partials} partial` : ''}</div><div class="reps">${x.reps_detail.map(r => `<span class="${r.faults.length ? 'f' : ''}" title="${r.faults.map(f => f.cue).join(', ')}">${r.n}</span>`).join('')}</div></div>`).join('');
+  const withT = s.sets.filter(x => x.reps);
+  if (withT.length) h += `<table><tr><td>Average time down</td><td>${(avg(withT, 'avgDownMs') / 1000).toFixed(1)} s</td></tr><tr><td>Average time up</td><td>${(avg(withT, 'avgUpMs') / 1000).toFixed(1)} s</td></tr></table>`;
+  $('sumBody').innerHTML = h;
+}
+const avg = (a, k) => a.reduce((s, x) => s + x[k], 0) / a.length;
+function renderHistory() {
+  const h = store.get(KEY_HIST, []);
+  $('history').innerHTML = h.length ? h.slice(0, 12).map(s => {
+    const e = RC.EX[s.ex] || { hold: false };
+    const tot = s.sets.reduce((a, x) => a + (e.hold ? Math.round(x.holdGoodMs / 1000) : x.reps), 0);
+    const clean = s.sets.reduce((a, x) => a + x.clean, 0);
+    return `<div class="hrow"><span class="n">${s.name}${s.load ? ' · ' + s.load + ' kg' : ''}</span><span class="s">${e.hold ? tot + ' s' : `${tot} reps<br>${clean} clean`}</span>
+      <span class="d">${new Date(s.date).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })} · ${s.sets.length} sets</span></div>`;
+  }).join('') : '<p class="note">Your sets will appear here. Example: Squat · 16 kg · 3 × 8, 22 clean.</p>';
+}
+renderHistory();
+function todayText() {
+  const today = new Date().toDateString();
+  const h = store.get(KEY_HIST, []).filter(s => new Date(s.date).toDateString() === today).reverse();
+  if (!h.length) return '';
+  return `Rep Coach — ${new Date().toLocaleDateString()}\n` + h.map(s => {
+    const e = RC.EX[s.ex] || {};
+    const sets = s.sets.map(x => e.hold ? Math.round(x.holdGoodMs / 1000) + 's' : `${x.reps}(${x.clean} clean)`).join(', ');
+    const f = {}; s.sets.forEach(x => x.faults.forEach(y => f[y.cue] = (f[y.cue] || 0) + y.n));
+    return `${s.name}${s.load ? ' @' + s.load + 'kg' : ''}: ${sets}` + (Object.keys(f).length ? ` | fixes: ${Object.entries(f).map(([k, v]) => k + ' ×' + v).join(', ')}` : '');
+  }).join('\n');
+}
+$('copyBtn').addEventListener('click', async () => {
+  const t = todayText(); if (!t) { $('copyBtn').textContent = 'Nothing logged today'; setTimeout(() => $('copyBtn').textContent = 'Copy today’s log', 1600); return; }
+  try { await navigator.clipboard.writeText(t); $('copyBtn').textContent = 'Copied'; } catch (e) { $('copyBtn').textContent = 'Copy failed'; }
+  setTimeout(() => $('copyBtn').textContent = 'Copy today’s log', 1600);
+});
+$('exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(store.get(KEY_HIST, []), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `rep-coach-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+});
+
+if ('serviceWorker' in navigator && secure) navigator.serviceWorker.register('sw.js').catch(() => {});
+window.__repcoach = { begin, endSet, get phase() { return phase; } }; // test hook
+})();
+</script>
+</body>
+</html>
