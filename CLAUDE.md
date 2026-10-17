@@ -9,13 +9,16 @@ Owner: Karim Mokdad (Dubai). Built first for his own training: kettlebells, cali
 - `coach.js` is the coaching engine. It is pure logic with no DOM, and runs in the browser and in Node.
 - `mp/` holds vendored MediaPipe Pose 0.5.1675469404 (legacy Solutions API). It loads locally with a pinned jsDelivr fallback.
 - `sw.js` is a cache-first service worker, so the app works offline after the first visit. `manifest.webmanifest` and `icons/` make it installable on the Home Screen.
-- Tests: `node tests/coach.test.js` runs 34 synthetic-pose checks, all passing. `tests/e2e/flow.js` drives the full app in Playwright with a stand-in pose model.
+- Tests: `node tests/coach.test.js` runs 38 synthetic-pose checks, all passing. `tests/e2e/flow.js` drives the full app in Playwright with a stand-in pose model; `tests/e2e/recorder.js` does the same for the debug recorder.
+- `?debug=landmarks` records each set's landmarks and saves them as a labelled fixture. `node tests/fixtures.test.js` replays `tests/fixtures/*.json` and scores count accuracy and fault precision per exercise (`TEST_PLAN.md` §3).
 
 ## Run
 ```bash
 python3 -m http.server 8765        # then open http://localhost:8765 (localhost counts as secure, so the camera works)
 node tests/coach.test.js           # engine tests, must stay green
+node tests/fixtures.test.js        # replay recorded fixtures, must meet targets (--report to just print)
 node tests/e2e/flow.js             # full-flow test (needs playwright + a local server on 8765)
+node tests/e2e/recorder.js         # debug recorder flow, same setup
 ```
 The camera needs HTTPS on a phone. Deploy target is GitHub Pages (`main` branch, root).
 
@@ -31,7 +34,8 @@ The camera needs HTTPS on a phone. Deploy target is GitHub Pages (`main` branch,
 ## Key files
 | File | What it is |
 |---|---|
-| `coach.js` | Exercise library (`EX`), geometry helpers, `createTracker()` state machine |
+| `coach.js` | Exercise library (`EX`), geometry helpers, `createTracker()` state machine, fixture format helpers (`fixture`) |
+| `tests/fixtures/` | Recorded landmark streams with hand labels, replayed by `tests/fixtures.test.js` |
 | `index.html` | UI, camera, voice, history, PWA wiring |
 | `docs/PRD.md` | Product goals, user, scope, what to take from Pushscroll |
 | `docs/ARCHITECTURE.md` | How it works now; the target architecture and the native-app decision |

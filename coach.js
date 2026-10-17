@@ -388,7 +388,45 @@
     return { update, summary, exercise: ex, id: exId };
   }
 
-  const api = { EX, P, SIDES, createTracker, geometry: { angle, fromVertical, belowLine, mid } };
+  // ── Fixture format ──
+  // Debug landmark recordings (?debug=landmarks) and tests/fixtures.test.js share this format.
+  // A frame is [t, landmarks | null]; each landmark is [x, y, visibility] rounded to 4 decimals.
+  const r4 = v => Math.round(v * 1e4) / 1e4;
+  function packFrame(lm, t) {
+    return [Math.round(t), lm ? lm.map(p => [r4(p.x), r4(p.y), r4(p.visibility ?? 1)]) : null];
+  }
+  function unpackFrame(f) {
+    return { t: f[0], lm: f[1] ? f[1].map(p => ({ x: p[0], y: p[1], z: 0, visibility: p[2] })) : null };
+  }
+  // "chest:1-5, top:6 8" → { chest: [1,2,3,4,5], top: [6,8] }. "all" means reps 1..n. Blank means a clean set.
+  // Returns null when the text can't be read.
+  function parseFaultLabels(text, n) {
+    const NUMS = String.raw`(?:all|\d+(?:-\d+)?)`;
+    const re = new RegExp(String.raw`([a-z]+)\s*:\s*(${NUMS}(?:[\s,]+${NUMS})*)`, 'gi');
+    const src = String(text || '');
+    if (src.replace(re, '').replace(/[\s,;]/g, '')) return null; // something left that isn't a label
+    const out = {};
+    for (const [, id, list] of src.matchAll(re)) {
+      const reps = new Set(out[id.toLowerCase()] || []);
+      for (const tok of list.split(/[\s,]+/).filter(Boolean)) {
+        const r = tok.match(/^(\d+)-(\d+)$/);
+        if (/^all$/i.test(tok)) for (let i = 1; i <= n; i++) reps.add(i);
+        else if (r) for (let i = +r[1]; i <= +r[2]; i++) reps.add(i);
+        else reps.add(+tok);
+      }
+      out[id.toLowerCase()] = [...reps].sort((a, b) => a - b);
+    }
+    return out;
+  }
+  // rep numbers flagged with each fault id, from a tracker summary
+  function faultReps(summary) {
+    const out = {};
+    for (const r of summary.reps_detail || []) for (const f of r.faults) (out[f.id] = out[f.id] || []).push(r.n);
+    return out;
+  }
+  const fixture = { FORMAT: 'repcoach-fixture-v1', packFrame, unpackFrame, parseFaultLabels, faultReps };
+
+  const api = { EX, P, SIDES, createTracker, fixture, geometry: { angle, fromVertical, belowLine, mid } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.RepCoach = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -3,16 +3,17 @@
 Work top to bottom. Each milestone is done only when its acceptance criteria pass and the tests are green.
 
 ## M0 — Live on the phone ✅ / in progress
-- [x] Engine, 9 exercises, 34 synthetic tests passing
+- [x] Engine, 9 exercises, 38 synthetic tests passing
 - [x] PWA: offline cache, Home Screen install, wake lock, voice
 - [ ] Deployed to GitHub Pages; owner opens it in Safari, adds it to the Home Screen, and completes one squat set with correct counts
 **Accept:** owner confirms the count and cues on a real set.
 
 ## M1 — Calibrate on real video (highest value)
-- Record the validation set in `TEST_PLAN.md` (owner films 9 exercises, good and faulty, side and front).
-- Build `tests/fixtures/*.json`: run each video through the app with a "dump landmarks" debug flag and save the landmark streams with hand-labelled rep counts and faults.
-- Add `tests/fixtures.test.js`, which replays fixtures through the engine and reports count accuracy and fault precision and recall per exercise.
-- Tune thresholds until counts are ≥95% and fault precision ≥80%. Document every change in `EXERCISES.md`.
+- [x] `?debug=landmarks` mode: records each set's landmark stream, lets you label true reps and faulty reps, and saves it as a fixture JSON (share sheet → Save to Files on iPhone)
+- [x] `tests/fixtures.test.js` replays `tests/fixtures/*.json` through the engine and reports count accuracy and fault precision and recall per exercise; fails below target (`--report` to just print)
+- [x] A synthetic sample fixture (`tests/tools/make-sample-fixture.js`) and a browser test for the recorder (`tests/e2e/recorder.js`)
+- [ ] Record the validation set in `TEST_PLAN.md` (owner films 9 exercises, good and faulty, side and front) and commit the labelled fixtures
+- [ ] Tune thresholds until counts are ≥95% and fault precision ≥80%. Document every change in `EXERCISES.md`.
 **Accept:** the fixture report meets those targets; no synthetic test regressed.
 
 ## M2 — Engine and performance hardening

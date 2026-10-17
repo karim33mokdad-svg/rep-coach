@@ -124,6 +124,11 @@ select{height:44px;width:100%;min-width:0;border:1px solid var(--line);border-ra
 .fix.ok{border-left-color:var(--good)}
 .reps{display:flex;gap:4px;flex-wrap:wrap}
 .reps span{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-family:var(--mono);font-size:12px;background:color-mix(in srgb,var(--good) 22%,transparent);color:var(--good)}
+.rec{background:var(--rubber-2);border:1px solid var(--line);border-left:4px solid var(--go);border-radius:12px;padding:12px 14px;display:grid;gap:10px}
+.rec b{font-family:var(--display);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.4px}
+.rec p{margin:0;font-size:13px;color:var(--chalk-dim)}
+#recorder input{height:44px;width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--rubber);padding:0 10px;font-size:16px}
+#recErr{color:var(--fix);margin:0;font-size:13px}
 .reps span.f{background:color-mix(in srgb,var(--fix) 22%,transparent);color:var(--fix)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 td{padding:6px 0;border-bottom:1px solid var(--line)}
@@ -176,10 +181,16 @@ td:last-child{text-align:right;font-family:var(--mono);font-variant-numeric:tabu
     <input id="videoIn" type="file" accept="video/*" hidden>
   </div>
   <div class="note" id="envNote" hidden></div>
+  <div class="note" id="debugNote" hidden>Debug mode: each set’s landmarks are recorded so you can save them as a test fixture. Recordings stay on this phone unless you save or share the file yourself.</div>
 
   <section id="summary" hidden>
     <div class="lbl" id="sumLbl">Last set</div>
     <div class="sum" id="sumBody"></div>
+  </section>
+
+  <section id="recorder" hidden>
+    <div class="lbl">Landmark recording</div>
+    <div class="sum" id="recBody"></div>
   </section>
 
   <div class="lbl">History</div>
@@ -227,6 +238,8 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
 const KEY_HIST = 'repcoach-history-v1', KEY_PREF = 'repcoach-prefs-v1';
+const DEBUG_LM = new URLSearchParams(location.search).get('debug') === 'landmarks'; // record landmark streams as test fixtures
+if (DEBUG_LM) $('debugNote').hidden = false;
 
 // ── Exercise picker ──
 const order = ['squat', 'swing', 'pushup', 'lunge', 'press', 'curl', 'pullup', 'negative', 'plank'];
@@ -309,6 +322,7 @@ const vid = $('vid'), ov = $('ov'), ctx = ov.getContext('2d');
 let stream = null, running = false, busy = false, source = 'camera';
 let tracker = null, session = null, setIdx = 0, phase = 'idle'; // idle | countdown | work | rest | done
 let lastRepAt = 0, lastShown = 0, cueTimer = 0, wake = null, restTimer = null, holdSpokenAt = 0;
+let rec = null, recFrames = null; // debug landmark recording: whole session, current set
 
 async function startCamera() {
   if (stream) stream.getTracks().forEach(t => t.stop());
@@ -326,6 +340,7 @@ async function begin(fromVideoFile) {
   session = { id: Date.now(), date: new Date().toISOString(), ex: exId, name: RC.EX[exId].name, load: +$('load').value,
     target: +$('target').value, setsPlanned: +$('sets').value, sets: [] };
   setIdx = 0;
+  rec = DEBUG_LM ? { source, sets: [] } : null; $('recorder').hidden = true;
   $('home').hidden = true; $('live').hidden = false;
   $('liveName').textContent = RC.EX[exId].name;
   try {
@@ -342,11 +357,12 @@ async function begin(fromVideoFile) {
 
 function startSet() {
   tracker = RC.createTracker(exId);
+  recFrames = rec ? [] : null;
   lastRepAt = 0; lastShown = 0; holdSpokenAt = 0;
   const e = RC.EX[exId];
   $('countOf').textContent = e.hold ? 's' : '/' + session.target;
   $('count').firstChild.nodeValue = '0';
-  $('liveSet').textContent = `Set ${setIdx + 1} of ${session.setsPlanned}`;
+  $('liveSet').textContent = `Set ${setIdx + 1} of ${session.setsPlanned}` + (rec ? ' · REC' : '');
   $('cleanTally').innerHTML = ''; $('endBtn').hidden = false;
   if (source === 'file') { phase = 'work'; hideOverlay(); vid.currentTime = 0; vid.play(); return; }
   phase = 'countdown';
@@ -364,6 +380,10 @@ function endSet(reason) {
   phase = 'rest';
   const s = tracker.summary(); s.load = session.load; s.endedBy = reason;
   session.sets.push(s);
+  if (rec && recFrames) {
+    rec.sets.push({ app: { reps: s.reps, clean: s.clean, partials: s.partials, faults: RC.fixture.faultReps(s) }, frames: recFrames });
+    recFrames = null;
+  }
   const e = RC.EX[exId];
   let line;
   if (e.hold) line = `Set done. ${Math.round(s.holdGoodMs / 1000)} seconds of good form.`;
@@ -392,8 +412,9 @@ function finishSession() {
   if (session && session.sets.length) {
     const h = store.get(KEY_HIST, []); h.unshift(slim(session)); store.set(KEY_HIST, h.slice(0, 200));
     renderSummary(session); renderHistory();
+    if (rec && rec.sets.length) renderRecorder(session, rec);
   }
-  session = null; hideOverlay();
+  session = null; rec = null; recFrames = null; hideOverlay();
 }
 function slim(s) { // keep the log small: per-rep timing and faults, no raw angle stats
   return { ...s, sets: s.sets.map(x => ({ reps: x.reps, clean: x.clean, partials: x.partials, holdMs: x.holdMs, holdGoodMs: x.holdGoodMs,
@@ -428,6 +449,7 @@ function onResults(r) {
   const lm = r.poseLandmarks;
   const t = source === 'file' ? vid.currentTime * 1000 : performance.now();
   if (phase !== 'work' || !tracker) { if (lm) draw(lm, []); return; }
+  if (recFrames) recFrames.push(RC.fixture.packFrame(lm || null, t));
   const o = tracker.update(lm || null, t);
   if (lm) draw(lm, o.live);
   // tracking pill
@@ -531,6 +553,54 @@ $('exportBtn').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(store.get(KEY_HIST, []), null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `rep-coach-${new Date().toISOString().slice(0, 10)}.json`; a.click();
 });
+
+// ── Debug: landmark recorder (?debug=landmarks) ──
+// Saves the landmark stream of each set with your hand labels, for tests/fixtures.test.js.
+function faultIdsFor(e) { return [...(e.faults || []).map(f => [f.id, f.cue]), ...(e.topCue ? [['top', e.topCue]] : [])]; }
+function renderRecorder(s, r) {
+  const e = RC.EX[s.ex], ids = faultIdsFor(e), ex1 = ids[0] ? ids[0][0] : 'id';
+  const flagged = f => Object.entries(f).map(([k, v]) => `${k} on rep ${v.join(', ')}`).join('; ') || 'no faults';
+  $('recBody').innerHTML = r.sets.map((x, i) => `<div class="rec">
+      <b>Set ${i + 1} · ${x.frames.length} frames</b>
+      ${e.hold ? '<p>Hold timing isn’t scored yet, so this set is saved without labels.</p>' : `
+      <p>The app counted ${x.app.reps}${x.app.partials ? ` (plus ${x.app.partials} partial)` : ''} and flagged ${flagged(x.app.faults)}.</p>
+      <div class="field"><label for="recReps${i}">Actual full reps</label><input id="recReps${i}" type="number" inputmode="numeric" min="0" max="300" placeholder="Count them yourself"></div>
+      <div class="field"><label for="recFaults${i}">Reps with a fault</label><input id="recFaults${i}" type="text" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="e.g. ${ex1}:1-5 · blank = clean"></div>`}
+    </div>`).join('') + (e.hold ? '' : `
+    <p class="note">Fault ids for ${e.name}: ${ids.map(([id, cue]) => `<b>${id}</b> (${cue})`).join(', ') || 'none'}. Write id:reps, like ${ex1}:1-3 or ${ex1}:all. Leave “Actual full reps” blank to save a set unlabelled.</p>`) + `
+    <div class="field"><label for="recNote">What was this clip?</label><input id="recNote" type="text" placeholder="e.g. goblet 16 kg, deliberate chest drop"></div>
+    <p id="recErr" hidden></p>
+    <div class="cta"><button class="btn go" id="recSave" type="button">Save recording</button></div>`;
+  $('recorder').hidden = false;
+  $('recSave').onclick = () => saveRecording(s, r);
+}
+async function saveRecording(s, r) {
+  const e = RC.EX[s.ex], ids = faultIdsFor(e).map(x => x[0]), err = $('recErr');
+  const fail = msg => { err.textContent = msg; err.hidden = false; };
+  err.hidden = true;
+  const sets = [];
+  for (let i = 0; i < r.sets.length; i++) {
+    const x = r.sets[i], repsTxt = e.hold ? '' : $('recReps' + i).value.trim();
+    let reps = null, faults = {};
+    if (repsTxt !== '') {
+      reps = Math.round(+repsTxt);
+      if (!Number.isFinite(reps) || reps < 0) return fail(`Set ${i + 1}: “Actual full reps” must be a number, like 8.`);
+      faults = RC.fixture.parseFaultLabels($('recFaults' + i).value, reps);
+      if (!faults) return fail(`Set ${i + 1}: couldn’t read the faults. Write them as id:reps, for example ${ids[0] || 'id'}:1-5.`);
+      const bad = Object.keys(faults).filter(id => !ids.includes(id));
+      if (bad.length) return fail(`Set ${i + 1}: “${bad[0]}” isn’t a fault id for ${e.name}. Use one of: ${ids.join(', ')}.`);
+    }
+    sets.push({ truth: { reps, faults }, app: x.app, frames: x.frames });
+  }
+  const fx = { format: RC.fixture.FORMAT, ex: s.ex, source: r.source, recorded: s.date, load: s.load, note: $('recNote').value.trim(), sets };
+  const name = `fixture-${s.ex}-${s.date.slice(0, 19).replace(/[:T]/g, '-')}.json`;
+  const blob = new Blob([JSON.stringify(fx)], { type: 'application/json' });
+  try { // iPhone: the share sheet offers “Save to Files”
+    const file = new File([blob], name, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
+  } catch (ex) { if (ex.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+}
 
 if ('serviceWorker' in navigator && secure) navigator.serviceWorker.register('sw.js').catch(() => {});
 window.__repcoach = { begin, endSet, get phase() { return phase; } }; // test hook

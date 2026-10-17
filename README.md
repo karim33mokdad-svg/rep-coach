@@ -12,4 +12,6 @@ Prop your phone up, train, and Rep Coach counts every rep out loud and calls you
 
 **Use it:** open https://karim33mokdad-svg.github.io/rep-coach/ in Safari, tap Share → Add to Home Screen, and allow the camera.
 
-**Develop:** see `CLAUDE.md`. Tests: `node tests/coach.test.js`.
+**Develop:** see `CLAUDE.md`. Tests: `node tests/coach.test.js` and `node tests/fixtures.test.js`.
+
+**Record test data:** add `?debug=landmarks` to the address to save each set's pose landmarks (never video) as a labelled test fixture. See `docs/TEST_PLAN.md`.
