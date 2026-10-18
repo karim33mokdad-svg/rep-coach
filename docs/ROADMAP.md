@@ -16,6 +16,15 @@ Work top to bottom. Each milestone is done only when its acceptance criteria pas
 - [ ] Tune thresholds until counts are ≥95% and fault precision ≥80%. Document every change in `EXERCISES.md`.
 **Accept:** the fixture report meets those targets; no synthetic test regressed.
 
+## MW — Workouts section (next priority, requested 18 Oct)
+Spec: `docs/WORKOUTS_SPEC.md`. Example file: `workouts/2026-10-18-kb-power.json`.
+- [ ] Workouts tab with dated session cards, bundled (`workouts/index.json`) and pasted imports
+- [ ] Check-in with Green/Amber tiers resolving loads and swaps
+- [ ] Player for straight, EMOM, complex (per side), ladder and tabata blocks, with timers and spoken changeovers
+- [ ] Per-set logging, "Coach this set" on camera-trackable items (results logged back), "Record set" to the share sheet
+- [ ] Resume mid-session; Copy log for the coaching project; storage under `repcoach-workouts-v1` only
+**Accept:** the acceptance criteria in `WORKOUTS_SPEC.md`.
+
 ## M2 — Engine and performance hardening
 - Port to Vite + TypeScript (`src/engine`, `src/ui`). Keep the zero-dependency runtime.
 - Switch to `@mediapipe/tasks-vision` PoseLandmarker (GPU delegate) in a Web Worker. Vendor the `.task` model and wasm.

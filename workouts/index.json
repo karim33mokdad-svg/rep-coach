@@ -1,0 +1,6 @@
+{
+  "schema": "repcoach.workout-index/v1",
+  "workouts": [
+    { "id": "2026-10-18-kb-power", "date": "2026-10-18", "title": "KB Power", "file": "workouts/2026-10-18-kb-power.json" }
+  ]
+}

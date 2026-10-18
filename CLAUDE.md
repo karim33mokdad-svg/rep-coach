@@ -41,5 +41,7 @@ The camera needs HTTPS on a phone. Deploy target is GitHub Pages (`main` branch,
 | `docs/ARCHITECTURE.md` | How it works now; the target architecture and the native-app decision |
 | `docs/EXERCISES.md` | Every exercise: camera view, metric, thresholds, faults, cues |
 | `docs/ROADMAP.md` | Milestones with acceptance criteria. **Work from here.** |
+| `docs/WORKOUTS_SPEC.md` | Spec for the Workouts section (dated sessions, player, logging, camera per item) |
+| `workouts/` | Workout files in the `repcoach.workout/v1` format, listed in `workouts/index.json` |
 | `docs/TEST_PLAN.md` | Synthetic tests, real-video validation protocol, device matrix |
 | `docs/KICKOFF_PROMPT.md` | The first prompt to paste when starting a Claude Code session |

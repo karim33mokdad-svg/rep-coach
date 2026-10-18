@@ -1,0 +1,102 @@
+{
+  "schema": "repcoach.workout/v1",
+  "id": "2026-10-18-kb-power",
+  "date": "2026-10-18",
+  "title": "KB Power",
+  "subtitle": "Armor Builder · Bottoms-Up Gauntlet · Swing Pyramid and Carry",
+  "program": { "name": "The Practice", "block": "B: Strength & Power" },
+  "durationMin": 55,
+  "estKcal": [600, 750],
+  "checkIn": {
+    "question": "Bend forward and touch your knees. Any back tightness this morning or yesterday?",
+    "tiers": [
+      { "id": "green", "label": "No tightness", "description": "Use the Green loads." },
+      { "id": "amber", "label": "Some tightness", "description": "Use the Amber loads and swaps." }
+    ]
+  },
+  "rules": [
+    "Block A: if you can't finish a round inside the minute with clean reps, switch to a round every 75 seconds.",
+    "Stop any swing set that turns into a squat. If the back speaks during Block C, finish with carries only.",
+    "Benchmark: note how many clean Armor Builder rounds you finish. Next time: the same rounds with heavier bells, or 12 rounds at the same bells."
+  ],
+  "sections": [
+    {
+      "id": "warmup", "title": "Warm-up", "format": { "type": "straight" },
+      "items": [
+        { "id": "halo", "name": "KB halo", "sets": 2, "reps": "5 each way", "load": { "green": "8–12 kg" }, "restSec": 0,
+          "demo": "https://www.youtube.com/results?search_query=kettlebell+halo+shorts" },
+        { "id": "prying", "name": "Goblet prying squat", "sets": 2, "durationSec": 30, "load": { "green": "12–16 kg" }, "restSec": 0,
+          "cue": "Elbows push the knees out; sway side to side.",
+          "demo": "https://www.youtube.com/results?search_query=goblet+prying+squat+shorts" },
+        { "id": "kbdl", "name": "KB deadlift", "sets": 2, "reps": 8, "load": { "green": "16 kg" }, "restSec": 0,
+          "cue": "Slow, flat back.", "demo": "https://www.youtube.com/results?search_query=kettlebell+deadlift+form+shorts" },
+        { "id": "swingcheck", "name": "Two-hand swing (hinge check)", "sets": 2, "reps": 10, "load": { "green": "16 kg" }, "restSec": 45,
+          "camera": "swing",
+          "cue": "This is your hinge check. A \"Hinge, don't squat\" cue or any tightness means switch to Amber.",
+          "demo": "https://www.youtube.com/results?search_query=kettlebell+swing+hip+hinge+form+shorts" }
+      ]
+    },
+    {
+      "id": "armor", "title": "A · Armor Builder",
+      "format": { "type": "emom", "intervalSec": 60, "rounds": { "green": 10, "amber": 8 }, "restAfterSec": 120 },
+      "description": "Every minute: 2 double cleans, 1 double press, 3 double front squats. Rest for what's left of the minute.",
+      "items": [
+        { "id": "dclean", "name": "Double clean", "reps": 2, "load": { "green": "2×16 kg", "amber": "2×12 kg" },
+          "cue": "Bells land softly in the rack, wrists straight.",
+          "demo": "https://www.youtube.com/results?search_query=double+kettlebell+clean+shorts" },
+        { "id": "dpress", "name": "Double press", "reps": 1, "load": { "green": "2×16 kg", "amber": "2×12 kg" },
+          "camera": "press", "cue": "Glutes and abs tight, ribs down, biceps by the ears.",
+          "demo": "https://www.youtube.com/results?search_query=double+kettlebell+press+shorts" },
+        { "id": "dfsq", "name": "Double front squat", "reps": 3, "load": { "green": "2×16 kg", "amber": "goblet squat, 1 bell" },
+          "camera": "squat", "cue": "This lift tweaked your back when fatigued. Stay upright; stop the block if form slips.",
+          "swap": { "amber": "Goblet squat" },
+          "demo": "https://www.youtube.com/results?search_query=double+kettlebell+front+squat+shorts" }
+      ]
+    },
+    {
+      "id": "gauntlet", "title": "B · Bottoms-Up Gauntlet",
+      "format": { "type": "complex", "rounds": 3, "perSide": true, "sideRestSec": 20, "restAfterRoundSec": 60 },
+      "description": "Right hand: clean, press, lunge without putting the bell down. 15–20 s to shake out. Left hand: the same. Then the bear crawl drag. Rest 60 s.",
+      "items": [
+        { "id": "buclean", "name": "Bottoms-up clean", "reps": 3, "perSide": true, "load": { "green": "12 kg" },
+          "cue": "Crush the handle so the bell balances upside down.",
+          "demo": "https://www.youtube.com/results?search_query=bottoms+up+kettlebell+clean+shorts" },
+        { "id": "bupress", "name": "Bottoms-up press", "reps": 3, "perSide": true, "load": { "green": "12 kg (8 kg if it wobbles)" },
+          "cue": "Slow press. If the bell keeps tipping, finish that side holding it normally.",
+          "demo": "https://www.youtube.com/results?search_query=bottoms+up+kettlebell+press+shorts" },
+        { "id": "ohlunge", "name": "Overhead reverse lunge", "reps": 3, "perSide": true, "load": { "green": "12 kg, held normal way up" },
+          "camera": "lunge", "cue": "Arm locked, torso tall, step straight back.",
+          "demo": "https://www.youtube.com/results?search_query=kettlebell+overhead+reverse+lunge+shorts" },
+        { "id": "crawldrag", "name": "Bear crawl KB drag", "reps": 6, "perSide": true, "load": { "green": "16 kg" },
+          "cue": "Hips stay flat; drag the bell under you side to side.",
+          "demo": "https://www.youtube.com/results?search_query=bear+crawl+kettlebell+pull+through+shorts" }
+      ]
+    },
+    {
+      "id": "pyramid", "title": "C · Swing Pyramid and Carry",
+      "format": { "type": "ladder", "scheme": [5, 10, 15, 10, 5], "pairWith": "carry", "restAfterPairSec": 40 },
+      "description": "Swings for the ladder number, straight into a 20 m carry, rest 30–45 s. 45 swings and 5 carries in total.",
+      "items": [
+        { "id": "swing", "name": "Two-hand swing", "repsScheme": [5, 10, 15, 10, 5], "load": { "green": "16 kg", "amber": "KB deadlift, same reps" },
+          "camera": "swing", "swap": { "amber": "KB deadlift" },
+          "cue": "Stand tall, snap the hips. Stop the set if it turns into a squat.",
+          "demo": "https://www.youtube.com/results?search_query=kettlebell+swing+hip+hinge+form+shorts" },
+        { "id": "carry", "name": "Double farmer carry", "distanceM": 20, "sets": 5, "load": { "green": "2×20–24 kg", "amber": "2×16 kg" },
+          "cue": "Tall posture, shoulders down, slow steps, no swinging bells.",
+          "demo": "https://www.youtube.com/results?search_query=kettlebell+farmer+carry+form+shorts" }
+      ]
+    },
+    {
+      "id": "cooldown", "title": "Cooldown", "format": { "type": "straight" },
+      "items": [
+        { "id": "stirpot", "name": "Stir-the-pot (stability ball)", "sets": 2, "reps": "8 each way", "restSec": 30,
+          "demo": "https://www.youtube.com/results?search_query=stir+the+pot+stability+ball+shorts" },
+        { "id": "childpose", "name": "Child's pose with side reach", "sets": 2, "durationSec": 30, "perSide": true,
+          "demo": "https://www.youtube.com/results?search_query=child+pose+side+stretch+shorts" },
+        { "id": "hang", "name": "Dead hang", "sets": 2, "durationSec": 30,
+          "cue": "Decompresses the spine after the doubles.",
+          "demo": "https://www.youtube.com/results?search_query=dead+hang+form+shorts" }
+      ]
+    }
+  ]
+}
