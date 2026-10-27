@@ -9,7 +9,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const KEY = 'repcoach-workouts-v1';
 const DEFAULTS = { v: 1, imported: [], custom: [], sessions: [], program: { id: 'back-to-bells', done: {} }, player: null,
-  settings: { rehab: true, cleared: false, bells: [8, 12, 16, 20, 24], voice: true, beeps: true } };
+  settings: { rehab: true, cleared: false, bells: [8, 12, 16, 20, 24], voice: true, beeps: true, spotify: '', ytm: '' } };
 const db = {
   read() { try { const v = JSON.parse(localStorage.getItem(KEY)); return v ? { ...DEFAULTS, ...v, settings: { ...DEFAULTS.settings, ...(v.settings || {}) }, program: { ...DEFAULTS.program, ...(v.program || {}) } } : structuredClone(DEFAULTS); } catch (e) { return structuredClone(DEFAULTS); } },
   write(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) { toast('Couldn’t save on this phone. Storage may be full.'); } }
@@ -73,6 +73,22 @@ function beep(freq = 880, ms = 120) {
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = freq; o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.25, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + ms / 1000); o.start(); o.stop(actx.currentTime + ms / 1000); } catch (e) {}
 }
 function toast(t) { const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2600); }
+
+// ── Music: open your playlist in Spotify or YouTube Music; it keeps playing behind the app ──
+const MUSIC = {
+  spotify: { name: 'Spotify', home: 'https://open.spotify.com/', ok: u => /^https:\/\/open\.spotify\.com\//.test(u) },
+  ytm: { name: 'YouTube Music', home: 'https://music.youtube.com/', ok: u => /^https:\/\/(music\.youtube\.com|(www\.)?youtube\.com|youtu\.be)\//.test(u) }
+};
+function musicLinks() {
+  return Object.entries(MUSIC).map(([k, m]) => { const u = D.settings[k]; return `<a class="btn ghost music-btn" href="${esc(u && m.ok(u) ? u : m.home)}" target="_blank" rel="noopener">${k === 'spotify' ? '●' : '▶'} ${m.name}${u ? '' : ''}</a>`; }).join('');
+}
+function openMusicSheet() {
+  const sheet = $('sheet');
+  sheet.innerHTML = `<div class="sheet-card"><h2>Music</h2><p class="dim small">Opens your workout playlist in the music app. Start it playing, then switch back here; the music keeps going and the coach talks over it.</p>
+    <div class="cta">${musicLinks()}</div>${!D.settings.spotify && !D.settings.ytm ? '<p class="note">Add your playlist links in Settings so these open straight on them.</p>' : ''}
+    <div class="cta"><button class="btn ghost" type="button" id="closeSheet">Close</button></div></div>`;
+  sheet.hidden = false; $('closeSheet').onclick = () => sheet.hidden = true;
+}
 
 // ── Navigation ──
 const VIEWS = ['vToday', 'vHub', 'vList', 'vWorkout', 'vLib', 'vEx', 'vHist', 'vSession', 'vMore', 'home', 'vPlayer', 'vFinish', 'vClip'];
@@ -258,6 +274,7 @@ function renderWorkout() {
     ${s.items.map(it => { const ex = WK.exForShown(it, tier); return `<button type="button" class="itemrow" ${ex ? `data-ex="${ex.id}"` : ''}>
       <span class="thumb" ${ex ? `data-thumb="${ex.id}"` : ''}></span><span><b>${esc(WK.repsText(it, tier) || (s.format.scheme ? s.format.scheme.join('-') : ''))}</b> ${esc(WK.nameOf(it, tier))}<br><span class="dim small">${esc([WK.resolve(it.load, tier), it.camera || (ex && ex.camera) ? '📷 camera coach' : ''].filter(Boolean).join(' · '))}</span></span></button>`; }).join('')}</section>`;
   }).join('')}
+  <div class="lbl">Music</div><div class="cta music-row">${musicLinks()}</div>
   <div class="cta sticky"><button class="btn go" type="button" id="startW">Start workout</button>${w.id.startsWith('built-') && !D.custom.some(x => x.id === w.id) ? '<button class="btn ghost" type="button" id="saveW">Save to mine</button>' : ''}${D.custom.some(x => x.id === w.id) || D.imported.some(x => x.id === w.id) ? '<button class="btn ghost" type="button" id="delW">Remove</button>' : ''}</div>`;
   thumbs($('vWorkout'));
   $('vWorkout').querySelectorAll('[data-tier]').forEach(b => b.onclick = () => { cur.tier = b.dataset.tier; renderWorkout(); });
@@ -479,7 +496,7 @@ function renderPlayer() {
   const logged = it && PL.log[it.key] ? PL.log[it.key] : null;
   $('vPlayer').innerHTML = `
   <div class="pbar"><button class="icon-btn" type="button" id="pExit" aria-label="Leave workout">‹</button><b>${esc(s.title)}</b>
-    <button class="icon-btn" type="button" id="pVoice" aria-label="Voice ${D.settings.voice ? 'on' : 'off'}">${D.settings.voice ? '🔊' : '🔇'}</button></div>
+    <button class="icon-btn" type="button" id="pMusic" aria-label="Music">♫</button><button class="icon-btn" type="button" id="pVoice" aria-label="Voice ${D.settings.voice ? 'on' : 'off'}">${D.settings.voice ? '🔊' : '🔇'}</button></div>
   <div class="clockbar ${isRest ? 'resting' : ''}"><span class="fill" id="pFill"></span><span class="lab">${esc(isRest ? s.label : s.label)}</span><span class="time" id="pTime">0:00</span></div>
   <div class="mono dim center">${workIdx} of ${workTotal} · ${WK.clock((Date.now() - PL.startedAt) / 1000 - (PL.pausedFor || 0))} total</div>
   ${hero ? `<div class="now"><span class="mono">${isRest ? 'Next' : 'Now'}${hero.reps ? ': ' + esc(hero.reps) : ''}${hero.side ? ' · ' + esc(hero.side) : ''}</span>
@@ -501,6 +518,7 @@ function renderPlayer() {
   thumbs($('vPlayer').querySelector('.stack') || document.createElement('div'));
   $('pExit').onclick = () => { if (confirm('Leave the workout? Your place is saved, so you can resume it from Today.')) leavePlayer(false); };
   $('pVoice').onclick = () => { D.settings.voice = !D.settings.voice; save(); renderPlayer(); };
+  $('pMusic').onclick = openMusicSheet;
   $('pPause').onclick = togglePause;
   $('pSkip').onclick = () => advance(false);
   $('pPrev').onclick = () => { if (PL.i > 0) { PL.i--; while (PL.i > 0 && step().kind === 'rest') PL.i--; persist(); enterStep(); } };
@@ -654,12 +672,21 @@ function renderMore() {
     <label class="switch"><input type="checkbox" id="sBeeps" ${st.beeps ? 'checked' : ''}><span><b>Countdown beeps</b></span></label>
     <div class="field"><label class="mono dim">My bells (kg)</label><div class="seg wrap">${[6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 28, 32].map(k => `<button type="button" data-bell="${k}" aria-pressed="${st.bells.includes(k)}">${k}</button>`).join('')}</div></div>
   </div>
+  <div class="lbl">Music</div>
+  <div class="setup">
+    <div class="field"><label class="mono dim" for="mSpot">Spotify playlist link</label><input class="search" id="mSpot" type="url" inputmode="url" placeholder="https://open.spotify.com/playlist/…" value="${esc(st.spotify)}"></div>
+    <div class="field"><label class="mono dim" for="mYtm">YouTube Music playlist link</label><input class="search" id="mYtm" type="url" inputmode="url" placeholder="https://music.youtube.com/playlist?list=…" value="${esc(st.ytm)}"></div>
+    <p class="dim small">In the music app, open your playlist, tap Share, then Copy link, and paste it here. The ♫ button in the player then opens it in one tap.</p>
+    <p class="err" id="mErr" hidden></p>
+  </div>
   <div class="lbl">Backup</div>
   <div class="cta"><button class="btn ghost" type="button" id="bExport">Back up workouts</button><label class="btn ghost" for="bImport" style="text-align:center">Restore</label><input type="file" id="bImport" accept="application/json" hidden></div>
   <p class="note">The backup holds your workouts, logs and settings, not clips or camera sets. It stays on this phone unless you share it.</p>
   <div class="lbl">Glossary</div>
   ${LIB.GLOSSARY.map(g => `<div class="gloss"><b class="mono dim">${esc(g.group)}</b>${g.items.map(([t, d]) => `<details><summary>${esc(t)}</summary><p class="dim small">${esc(d)}</p></details>`).join('')}</div>`).join('')}`;
   const bind = (id, k) => $(id).onchange = e => { st[k] = e.target.checked; save(); };
+  const musicField = (id, k) => $(id).onchange = e => { const v = e.target.value.trim(); if (v && !MUSIC[k].ok(v)) { $('mErr').textContent = `That doesn\u2019t look like a ${MUSIC[k].name} link. Copy it from the app\u2019s Share button.`; $('mErr').hidden = false; return; } $('mErr').hidden = true; st[k] = v; save(); toast(v ? `${MUSIC[k].name} playlist saved.` : `${MUSIC[k].name} link removed.`); };
+  musicField('mSpot', 'spotify'); musicField('mYtm', 'ytm');
   bind('sRehab', 'rehab'); bind('sCleared', 'cleared'); bind('sVoice', 'voice'); bind('sBeeps', 'beeps');
   $('vMore').querySelectorAll('[data-bell]').forEach(b => b.onclick = () => { const k = +b.dataset.bell; st.bells = st.bells.includes(k) ? st.bells.filter(x => x !== k) : [...st.bells, k].sort((a, c) => a - c); if (!st.bells.length) st.bells = [k]; save(); renderMore(); });
   $('bExport').onclick = async () => {

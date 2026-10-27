@@ -117,6 +117,17 @@ const OUT = process.env.SHOTS;
   check('Build for me makes a back-safe AMRAP', (await p.textContent('#vWorkout')).includes('AMRAP') && (await p.textContent('#vWorkout')).includes('Back-safe'));
   await shot('w-built');
 
+  // music links
+  await p.click('[data-tab=today]'); await p.click('#openMore');
+  await p.fill('#mSpot', 'not a link'); await p.dispatchEvent('#mSpot', 'change');
+  check('a wrong music link is refused with a reason', (await p.textContent('#mErr')).includes('Spotify link'));
+  await p.fill('#mSpot', 'https://open.spotify.com/playlist/37i9dQZF1DX76Wlfdnj7AP'); await p.dispatchEvent('#mSpot', 'change');
+  await p.evaluate(() => window.__kb.openWorkout('rehab-core')); await p.waitForSelector('#vWorkout .music-row');
+  check('the workout page opens your Spotify playlist', (await p.getAttribute('#vWorkout .music-row a', 'href')).includes('/playlist/37i9'));
+  await p.click('#startW'); await p.waitForSelector('#pMusic'); await p.click('#pMusic');
+  check('the player\'s ♫ button offers both apps', (await p.textContent('#sheet')).includes('YouTube Music') && (await p.textContent('#sheet')).includes('Spotify'));
+  await p.click('#closeSheet'); await p.click('#pExit');
+
   // Bell Builder 12: the program built from the recorded sessions
   await p.click('[data-tab=today]'); await p.click('#changeProg'); await p.click('[data-prog="bell-builder"]');
   await p.waitForSelector('#vToday .day');
