@@ -25,7 +25,8 @@ Spec: `docs/WORKOUTS_SPEC.md`. Example file: `workouts/2026-10-18-kb-power.json`
 - [x] "Coach this set" hands the set to the camera and logs reps, clean reps and faults back
 - [x] Finish: per-exercise bell weight, how it felt, RPE, note; next-time suggestion (double progression)
 - [x] Resume mid-session; Copy log for the coaching project; storage under `repcoach-workouts-v1` only
-- [x] Exercise library (69 moves): how-to, active-muscle map, common mistakes, back rating, animated demo figure, your own looping clip (record or import, trimmed, kept in IndexedDB)
+- [x] Programs: Back to Bells (rehab return), Bell Engine, Bell Builder 12 (built from the 15 sessions in the recording, with weekly rep and bell progression via `applyMods`)
+- [x] Exercise library (105 moves): how-to, active-muscle map, common mistakes, back rating, animated demo figure, your own looping clip (record or import, trimmed, kept in IndexedDB)
 - [ ] "Record set" to the share sheet
 - [ ] Owner phone test on iPhone Safari and the Home Screen app
 **Accept:** the acceptance criteria in `WORKOUTS_SPEC.md`.

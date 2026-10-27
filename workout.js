@@ -55,6 +55,7 @@
         if (it.ex && !LIB.BY_ID[it.ex]) err(`${p}.items[${j}].ex`, `"${it.ex}" isn't in the exercise library`);
       });
       if (s.format && s.format.type === 'ladder' && !Array.isArray(s.format.scheme)) err(`${p}.format.scheme`, 'a ladder needs a scheme, like [5,10,15]');
+      if (s.format && s.format.type === 'emom' && s.format.minutes && !s.format.rotate) err(`${p}.format.minutes`, 'only works with rotate: true; use rounds instead');
       if (s.format && s.format.type === 'amrap' && !(s.format.capSec > 0)) err(`${p}.format.capSec`, 'an AMRAP needs a time cap in seconds');
     });
     return { ok: !errors.length, errors };
@@ -107,8 +108,9 @@
           if (r < rounds) rest(f.restAfterRoundSec || 0, 'Round rest');
         }
       } else if (type === 'emom') {
-        const rounds = resolve(f.rounds, tier) || 1, iv = f.intervalSec || 60;
-        const n = f.rotate ? rounds * items.length : rounds;
+        const iv = f.intervalSec || 60, mins = resolve(f.minutes, tier);
+        const n = f.rotate ? (mins ? Math.round(mins * 60 / iv) : (resolve(f.rounds, tier) || 1) * items.length) : (resolve(f.rounds, tier) || 1);
+        const rounds = f.rotate ? Math.ceil(n / items.length) : n;
         for (let k = 0; k < n; k++) {
           const r = f.rotate ? Math.floor(k / items.length) + 1 : k + 1;
           const its = f.rotate ? [view(s, si, items[k % items.length], k % items.length)] : items.map((it, idx) => view(s, si, it, idx));
@@ -155,7 +157,7 @@
   // summary card numbers
   function overview(w, tier = 'green') {
     const exIds = new Set(); w.sections.forEach(s => s.items.forEach(it => exIds.add(it.ex || it.name)));
-    const rounds = Math.max(...w.sections.map(s => resolve((s.format || {}).rounds, tier) || 1));
+    const rounds = Math.max(...w.sections.map(s => { const f = s.format || {}, m = resolve(f.minutes, tier); return m && f.rotate ? Math.ceil(m * 60 / (f.intervalSec || 60) / s.items.length) : resolve(f.rounds, tier) || 1; }));
     return { exercises: exIds.size, rounds, minutes: w.durationMin || estimateMin(timeline(w, tier)) };
   }
   function lines(section, tier = 'green') { // the "5 rounds · 6-8 Double front squat" list on cards
@@ -187,6 +189,42 @@
       return { kg: e.kg, n: l.n, text: `Last time ${fmtLoad(l)} felt right. Same bell, one more rep per set.` };
     }
     return null;
+  }
+
+
+  // ── Program progression ──
+  // A program day can tweak a workout: { reps: 'low'|'mid'|'high', load: +1|-1 (bells), scale: 0.75 (fewer minutes or rounds), note }.
+  // Ranges like "8-12" become 8, 10 or 12; loads move to the next or previous bell you own.
+  function pickRange(v, how) {
+    if (typeof v !== 'string') return v;
+    const m = v.match(/^(\d+)\s*[-–]\s*(\d+)(.*)$/); if (!m) return v;
+    const lo = +m[1], hi = +m[2], n = how === 'low' ? lo : how === 'high' ? hi : Math.round((lo + hi) / 2);
+    return m[3] ? `${n}${m[3]}` : n;
+  }
+  function shiftLoad(v, step, bells) {
+    if (!step || typeof v !== 'string') return v;
+    return v.replace(/(\d+(?:\.\d+)?)(?=\s*(?:[–-]\s*\d+\s*)?kg)/g, kg => String(nextBell(+kg, bells, step)));
+  }
+  function applyMods(w, mods, bells = [8, 12, 16, 20, 24], tag) {
+    if (!mods) return w;
+    const c = JSON.parse(JSON.stringify(w));
+    const each = (v, fn) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fn(x)])) : fn(v);
+    c.sections.forEach(s => {
+      const f = s.format || {};
+      if (mods.scale && s.id !== 'warm') {
+        if (f.minutes) f.minutes = each(f.minutes, m => Math.max(4, Math.round(m * mods.scale)));
+        else if (f.rounds) f.rounds = each(f.rounds, r => Math.max(1, Math.round(r * mods.scale)));
+        if (f.capSec) f.capSec = Math.round(f.capSec * mods.scale);
+      }
+      s.items.forEach(it => {
+        if (mods.reps) it.reps = each(it.reps, r => pickRange(r, mods.reps));
+        if (mods.load && s.id !== 'warm') it.load = each(it.load, l => shiftLoad(l, mods.load, bells));
+      });
+    });
+    if (mods.scale && c.durationMin) c.durationMin = Math.round(c.durationMin * mods.scale);
+    if (tag) c.id = `${w.id}@${tag}`;
+    c.mods = mods;
+    return c;
   }
 
   // ── Build a workout on request (no network: picks from the library by rules) ──
@@ -279,7 +317,7 @@
   }
 
   const api = { FORMATS, FORMAT_LABEL, TIERS, resolve, nameOf, exForShown, repsText, validate, parse, timeline, estimateMin, overview, lines,
-    parseLoad, fmtLoad, nextBell, suggest, generate, backRating, inRange, clock, logText };
+    parseLoad, fmtLoad, nextBell, suggest, applyMods, pickRange, generate, backRating, inRange, clock, logText };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.RepWorkout = api;
 })(typeof window !== 'undefined' ? window : globalThis);

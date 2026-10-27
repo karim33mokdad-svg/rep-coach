@@ -103,7 +103,7 @@
       ['Pressing before your legs finish.', 'Elbows dropping at the bottom.'], { q: 'kettlebell thruster' }),
 
     // ── Press and push ──
-    X('press', 'Strict press', 'Upper Body', 'press', 'kb', 'care', 'Shoulders', 'Triceps, upper back',
+    X('press', 'Strict press', 'Upper Body', 'press', 'kb', 'load', 'Shoulders', 'Triceps, upper back',
       ['Bell in the rack, glutes and abs tight.', 'Press straight up, finishing with the bicep by your ear.', 'Pull it back down to the rack.'],
       ['Leaning back to finish the rep.', 'Elbow flaring early.'], { side: true, camera: 'press', q: 'kettlebell strict press' }),
     X('dpress', 'Double press', 'Upper Body', 'press', '2kb', 'load', 'Shoulders', 'Triceps, core',
@@ -240,6 +240,113 @@
     X('wristcurl', 'Wrist curls', 'Rehab', 'stand', 'kb', 'ok', 'Forearms', 'Grip',
       ['Forearm on your thigh, seated. Light bell.', 'Curl the wrist up slowly, lower slowly. Then palm down.'],
       ['Heavy and jerky.', 'Lifting the forearm.'], { q: 'seated wrist curl reverse' }),
+
+    // ── Added 27 Oct for the sessions from the recording ──
+    X('american', 'American swing', 'Full Body', 'snatch', 'kb', 'load', 'Glutes, hamstrings', 'Shoulders, core',
+      ['Swing as usual, but let the bell keep travelling until it is overhead, arms straight.', 'Ribs stay down at the top; your body is a straight line from feet to bell.', 'Let it fall back into the hinge.'],
+      ['Arching the lower back to get the bell overhead.', 'Shrugging into a pinched shoulder (stop at eye level while your left shoulder pinches).'], { q: 'american kettlebell swing form' }),
+    X('jacks', 'Jumping jacks', 'Full Body', 'stand', 'bw', 'care', 'Calves, shoulders', 'Heart rate',
+      ['Jump your feet out as your arms sweep overhead, then back in.', 'Land softly on the balls of your feet.'],
+      ['Landing flat and heavy.', 'Locking the knees.'], { q: 'jumping jacks form' }),
+    X('revplank', 'Reverse plank', 'Core', 'bridge', 'bw', 'care', 'Glutes, hamstrings', 'Shoulders, back extensors',
+      ['Sit with legs straight, hands behind your hips, fingers forward.', 'Lift your hips until you form a straight line, and hold.'],
+      ['Hips sagging.', 'Head thrown back.'], { q: 'reverse plank form' }),
+    X('scpp', 'Swing clean and push press', 'Full Body', 'clean', 'kb', 'load', 'Glutes, shoulders', 'Hamstrings, triceps',
+      ['Swing the bell back and clean it to the rack.', 'Dip a little and drive it overhead. Lower to the rack, then back into the swing.'],
+      ['Catching the clean on the forearm with a bang.', 'Arching at lockout.'], { side: true, camera: 'press', q: 'kettlebell swing clean push press' }),
+    X('bellpushup', 'Bell push-up', 'Upper Body', 'pushup', '2kb', 'care', 'Chest, triceps', 'Shoulders, wrists',
+      ['Hands on the handles of two bells, body straight.', 'Lower between the bells and press back up.'],
+      ['Bells wobbling: grip hard, keep wrists straight.', 'Hips sagging.'], { camera: 'pushup', q: 'kettlebell push up handles' }),
+    X('sumodl', 'Sumo deadlift', 'Legs', 'hinge', 'kb', 'load', 'Glutes, adductors', 'Hamstrings, back',
+      ['Wide stance, toes out, bell between your feet.', 'Hinge and bend your knees out over your toes, long spine.', 'Stand up, squeezing your glutes.'],
+      ['Knees caving.', 'Rounding to reach the bell. Go easy on width while the adductor recovers.'], { q: 'kettlebell sumo deadlift' }),
+    X('gobletpress', 'Goblet shoulder press', 'Upper Body', 'press', 'kb', 'load', 'Shoulders', 'Triceps, core',
+      ['Hold the bell by the horns at your chest.', 'Press it straight overhead, ribs down, then lower it to your chest.'],
+      ['Leaning back.', 'Bell drifting forward.'], { q: 'kettlebell goblet shoulder press' }),
+    X('airsquat', 'Air squat', 'Legs', 'squat', 'bw', 'care', 'Quads, glutes', 'Core',
+      ['Feet hip-width, arms forward for balance.', 'Sit down between your hips, chest up, then stand tall.'],
+      ['Heels lifting.', 'Knees caving.'], { camera: 'squat', q: 'air squat form' }),
+    X('trident', 'Iron trident', 'Core', 'stand', 'kb', 'care', 'Core', 'Shoulders',
+      ['I couldn’t confirm how this one is done; it isn’t a standard kettlebell name.', 'Add a clip of the version you know, or swap it for halos for now.'],
+      [], { q: 'kettlebell iron trident' }),
+    X('kneelatw', 'Kneeling around the world', 'Core', 'carry', 'kb', 'ok', 'Core', 'Grip, shoulders',
+      ['Tall kneel, glutes squeezed.', 'Pass the bell around your waist, hand to hand, without your hips swaying. Switch direction.'],
+      ['Sitting back on your heels.', 'Leaning with the bell.'], { q: 'kneeling kettlebell around the world' }),
+    X('rtwist', 'Russian twist', 'Core', 'supine', 'kb', 'load', 'Obliques', 'Abs, hip flexors',
+      ['Sit leaning back with the bell at your chest.', 'Rotate from side to side.'],
+      ['Rounding the lower back while twisting. Leave it out until the physio clears flexion with rotation.'], { q: 'kettlebell russian twist' }),
+    X('rackmarch', 'Double rack march', 'Core', 'carry', '2kb', 'care', 'Core, hip flexors', 'Upper back',
+      ['Two bells in the rack. March on the spot, knees to hip height.', 'Stay tall; no leaning back.'],
+      ['Leaning back as the knee lifts.', 'Elbows drifting.'], { q: 'double kettlebell rack march' }),
+    X('atlas', 'Atlas swing', 'Full Body', 'swing', 'kb', 'load', 'Glutes, obliques', 'Shoulders',
+      ['I couldn’t confirm the exact form of this one; it isn’t a standard kettlebell name.', 'Add a clip of the version you know, or do two-hand swings instead.'],
+      [], { q: 'kettlebell atlas swing' }),
+    X('obliquecrunch', 'Oblique side crunch', 'Core', 'sidelying', 'bw', 'care', 'Obliques', 'Hip abductors',
+      ['Lie on one side, legs stacked, hand behind your head.', 'Lift your shoulder and legs toward each other a few centimetres, then lower.'],
+      ['Yanking on the neck.', 'Rolling onto your back.'], { side: true, q: 'oblique side crunch' }),
+    X('towelcurl', 'Towel curl', 'Upper Body', 'curl', 'kb', 'ok', 'Biceps, grip', 'Forearms',
+      ['Loop a towel through the handle and hold both ends.', 'Curl it up with elbows pinned, lower slowly.'],
+      ['Swinging.', 'Letting the bell bang your wrists.'], { q: 'kettlebell towel curl' }),
+    X('squatcurl', 'Squatted curl', 'Upper Body', 'curl', 'kb', 'care', 'Biceps', 'Quads, hips',
+      ['Sit in a deep squat, elbows resting inside your knees.', 'Curl the bell from the floor to your chin.'],
+      ['Rounding into the lower back.', 'Elbows sliding.'], { q: 'kettlebell squatted curl' }),
+    X('uprightrow', 'Upright row', 'Upper Body', 'row', 'kb', 'care', 'Shoulders, traps', 'Biceps',
+      ['Hold the bell by the horns at arm’s length.', 'Pull it to your lower chest, elbows out but no higher than your shoulders.'],
+      ['Elbows above the shoulders: that pinches. Swap for high pulls while the left shoulder pinches.'], { q: 'kettlebell upright row' }),
+    X('ddsnatch', 'Double dead snatch', 'Full Body', 'snatch', '2kb', 'load', 'Glutes, hamstrings', 'Shoulders, grip',
+      ['Two bells on the floor. Hinge, grip, and snap your hips so the bells travel close to your body.', 'Punch through to lockout overhead. Lower to the floor each rep.'],
+      ['Bells banging the forearms.', 'Pulling with the arms.'], { q: 'double kettlebell dead snatch' }),
+    X('dhighpull', 'Double swing high pull', 'Full Body', 'swing', '2kb', 'load', 'Glutes, upper back', 'Rear shoulders',
+      ['Double swing, then pull both elbows back at the top so the bells come to your chest.'],
+      ['Pulling before the hips finish.'], { q: 'double kettlebell high pull' }),
+    X('deadhighpull', 'Dead high pull', 'Full Body', 'hinge', 'kb', 'load', 'Upper back, glutes', 'Hamstrings',
+      ['Bell on the floor. Hinge, grip, and stand explosively, pulling the elbow high and back.', 'Lower it to the floor each rep.'],
+      ['Rounding at the bottom.', 'Shrugging.'], { side: true, q: 'kettlebell dead high pull' }),
+    X('dbentrow', 'Double bent-over row', 'Upper Body', 'row', '2kb', 'load', 'Lats, upper back', 'Biceps, hamstrings',
+      ['Hinge with a bell in each hand, long flat back.', 'Row both to your hips, lower all the way.'],
+      ['Standing up as you row.', 'Rounding the back.'], { q: 'double kettlebell bent over row' }),
+    X('gfloorpress', 'Goblet floor press', 'Upper Body', 'floorpress', 'kb', 'ok', 'Chest, triceps', 'Shoulders',
+      ['On your back, bell held by the horns at your chest.', 'Press it up, lower until your elbows touch the floor.'],
+      ['Bouncing the elbows.', 'Arching.'], { q: 'kettlebell goblet floor press' }),
+    X('zpress', 'Z press', 'Upper Body', 'press', 'kb', 'load', 'Shoulders', 'Core, triceps',
+      ['Sit on the floor, legs straight and apart, tall spine.', 'Press the bell (or bells) overhead without leaning back.'],
+      ['Rounding the lower back to sit.', 'Leaning back to finish.'], { q: 'kettlebell z press' }),
+    X('frontraise', 'Goblet front raise', 'Upper Body', 'swing', 'kb', 'care', 'Front shoulders', 'Upper back',
+      ['Hold the bell by the horns at arm’s length.', 'Raise it to eye height with straight arms, lower slowly.'],
+      ['Swinging it up.', 'Leaning back.'], { q: 'kettlebell front raise' }),
+    X('deficitpu', 'Deficit push-up', 'Upper Body', 'pushup', '2kb', 'care', 'Chest, triceps', 'Shoulders',
+      ['Hands on bells or blocks so your chest can go lower than your hands.', 'Lower under control, press back up.'],
+      ['Going deeper than your shoulders like.', 'Hips sagging.'], { camera: 'pushup', q: 'deficit push up' }),
+    X('curl2tri', 'Curl to triceps extension', 'Upper Body', 'curl', 'kb', 'care', 'Biceps, triceps', 'Shoulders',
+      ['Curl the bell by the horns to your chest.', 'Press it overhead and lower it behind your head, then reverse.'],
+      ['Arching when the bell goes overhead.', 'Elbows flaring.'], { q: 'kettlebell curl to tricep extension' }),
+    X('kneelcurl', 'Kneeling biceps curl', 'Upper Body', 'curl', 'kb', 'ok', 'Biceps', 'Core',
+      ['Tall kneel, glutes squeezed.', 'Curl without leaning back.'],
+      ['Sitting back.', 'Swinging.'], { q: 'kneeling kettlebell curl' }),
+    X('ohtricep', 'Overhead triceps extension', 'Upper Body', 'press', 'kb', 'care', 'Triceps', 'Shoulders',
+      ['Hold the bell by the horns overhead.', 'Lower it behind your head by bending only the elbows, then extend.'],
+      ['Ribs flaring and back arching.', 'Elbows flaring wide.'], { q: 'kettlebell overhead tricep extension' }),
+    X('dips', 'Weighted dips', 'Upper Body', 'stand', 'bar', 'care', 'Chest, triceps', 'Shoulders',
+      ['Support yourself on parallel bars, a bell hanging from a belt or between your feet.', 'Lower until your upper arms are level, press up.'],
+      ['Going too deep for your shoulders.', 'Swinging.'], { q: 'weighted dips form' }),
+    X('slings', 'Around the slings', 'Core', 'carry', 'kb', 'care', 'Core', 'Grip',
+      ['I couldn’t confirm the exact form of this one; it isn’t a standard kettlebell name.', 'Add a clip of the version you know, or do around the world instead.'],
+      [], { q: 'kettlebell around the slings' }),
+    X('cluster', 'Dead cluster', 'Full Body', 'clean', 'kb', 'load', 'Glutes, quads', 'Shoulders, core',
+      ['Bell on the floor. Clean it from a dead stop to the rack.', 'Squat, then drive up and press it overhead in one move (a thruster). Return it to the floor.'],
+      ['Rushing the clean so the bell bangs.', 'Elbow dropping in the squat.'], { side: true, q: 'kettlebell clean thruster' }),
+    X('gobletrow', 'Goblet bent row', 'Upper Body', 'row', 'kb', 'load', 'Upper back, lats', 'Biceps',
+      ['Hinge, holding the bell by the horns at arm’s length.', 'Row it to your lower chest, lower all the way.'],
+      ['Rounding the back.', 'Standing up to row.'], { q: 'kettlebell goblet bent over row' }),
+    X('situppress', 'Goblet sit-up press', 'Core', 'supine', 'kb', 'load', 'Abs', 'Shoulders, hip flexors',
+      ['Lie back holding the bell at your chest.', 'Sit up and press it overhead at the top, then lower back down.'],
+      ['Yanking up with the lower back. Leave it out while loaded flexion is off the table.'], { q: 'kettlebell sit up press' }),
+    X('plankdrag', 'Plank side drag', 'Core', 'plank', 'kb', 'care', 'Abs, obliques', 'Shoulders',
+      ['High plank with a bell beside you.', 'Reach under and drag it to the other side without your hips moving.'],
+      ['Hips twisting.', 'Feet too close together.'], { q: 'plank kettlebell drag' }),
+    X('pullover', 'Goblet pull-over', 'Upper Body', 'floorpress', 'kb', 'care', 'Lats, chest', 'Core',
+      ['On your back, bell held by the horns over your chest.', 'Lower it behind your head with nearly straight arms, as far as your ribs stay down, then pull it back.'],
+      ['Arching the back to reach further.', 'Bending the elbows a lot.'], { q: 'kettlebell pullover' }),
     X('rest', 'Rest', 'Rehab', 'stand', 'bw', 'ok', '—', '—', ['Walk around, breathe, shake out your hands.'], [], { q: 'active rest' })
   ];
   const BY_ID = Object.fromEntries(EXERCISES.map(e => [e.id, e]));
@@ -372,6 +479,108 @@
     ], { back: 'load', description: 'Slow, perfect get-ups, then halos and bent-knee windmills.' })
   ];
 
+  // ── Sessions from the kettlebell app recording (27 Oct) ──
+  // Rebuilt from the screens Karim scrolled through: same moves and rep ranges, his bells, Amber swaps for the back.
+  // Most load the spine, so they sit behind the physio's go-ahead in Rehab mode.
+  const E = (minutes) => ({ type: 'emom', intervalSec: 60, minutes, rotate: true });
+  const RB = [
+    W('rb-sweat-starter', 'Full Body Sweat Starter', 'Full Body', 'Advanced', 48, [
+      sec('warm', 'Warm-up', { type: 'circuit', rounds: 3, restAfterRoundSec: 30 }, [
+        I('swing', 10, { green: '16 kg', amber: 'KB deadlift' }, { name: 'Russian swing', swap: { amber: 'Kettlebell deadlift' } }), I('pushup', 10, null), I('jacks', 10, null)],
+        { description: 'Three easy rounds, then stretch for what is left of 8 minutes.' }),
+      sec('main', '40 min EMOM', E(40), [
+        I('dfsq', '6-8', { green: '2×16 kg', amber: '16 kg' }, { swap: { amber: 'Goblet squat' } }), I('drdl', '6-8', { green: '2×16 kg', amber: '2×12 kg' }),
+        I('dswing', '10-12', { green: '2×16 kg', amber: '16 kg' }, { swap: { amber: 'Two-hand swing' } }), I('revplank', null, null, { durationSec: 30 }),
+        I('scpp', '6-8', { green: '16 kg', amber: '12 kg' }, { name: 'Swing clean and push press (left)' }), I('scpp', '6-8', { green: '16 kg', amber: '12 kg' }, { name: 'Swing clean and push press (right)' }),
+        I('american', '16-20', { green: '16 kg', amber: '16 kg' }, { swap: { amber: 'Two-hand swing' } }), I('plank', null, null, { durationSec: 30 })],
+        { description: 'Five rounds of eight minutes: heavy double squats and deadlifts, swings, clean and push presses, core holds.' })
+    ], { back: 'load', checkIn: true, source: 'recording', description: 'Week 1, Day 1 of the program in the recording. A 40-minute EMOM burner.' }),
+    W('rb-odyssey', '30-Minute Non-Stop', 'Full Body', 'Intermediate', 30, [
+      sec('main', '30 min EMOM', E(30), [
+        I('swing', 16, { green: '16 kg' }, { name: 'Russian swing' }), I('pushup', 15, null), I('goblet', 12, { green: '16 kg', amber: '12 kg' }),
+        I('row', 12, { green: '16 kg' }, { name: 'Bent-over row (left)' }), I('row', 12, { green: '16 kg' }, { name: 'Bent-over row (right)' }),
+        I('plank', null, null, { durationSec: 45 }), I('american', 15, { green: '16 kg' }, { swap: { amber: 'Two-hand swing' } }), I('bellpushup', 12, { green: '2×16 kg' })])
+    ], { back: 'load', source: 'recording', description: 'Eight moves, one per minute, for 30 minutes.' }),
+    W('rb-gentle', 'Gentle Momentum', 'Full Body', 'All levels', 20, [
+      sec('main', '20 min EMOM', E(20), [
+        I('bridge', '12-15', null, { name: 'Glute bridge' }), I('atw', '12-16', { green: '12 kg' }, { name: 'Around the world (alt)' }), I('sumodl', '10-12', { green: '20 kg', amber: '16 kg' }),
+        I('gobletpress', '8-10', { green: '12 kg' }), I('row', '10-12', { green: '2×16 kg' }, { name: 'Bent-over row (alt)' }), I('airsquat', '12-15', null),
+        I('halo', '10-12', { green: '8 kg' }, { name: 'Halo (alt)' }), I('pushup', '8-12', null),
+        I('suitcasehold', null, { green: '20 kg' }, { durationSec: 40, name: 'Suitcase hold (left)' }), I('suitcasehold', null, { green: '20 kg' }, { durationSec: 40, name: 'Suitcase hold (right)' })])
+    ], { back: 'load', source: 'recording', description: 'Ten moves, two rounds. Controlled, full-body, all levels.' }),
+    W('rb-foundation', 'Foundation and Flow', 'Full Body', 'All levels', 20, [
+      sec('main', '20 min EMOM', E(20), [
+        I('goblet', '10-12', { green: '16 kg', amber: '12 kg' }), I('pushup', '12-15', null), I('deadbug', null, null, { durationSec: 45 }),
+        I('pullover', '10-12', { green: '12 kg' }), I('bridge', '15-20', null)],
+        { description: 'Focus on controlled movement and a neutral spine through every minute.' })
+    ], { back: 'load', source: 'recording', description: 'Your saved workout from the recording: squats, push-ups, dead bugs, pull-overs and bridges, four rounds.' }),
+    W('rb-shoulder-fire', 'Shoulder Fire', 'Upper Body', 'Intermediate', 30, [
+      sec('main', '30 min EMOM', E(30), [
+        I('gobletpress', '8-12', { green: '12 kg' }), I('zpress', '8-12', { green: '2×8 kg' }, { name: 'Double Z press' }), I('halo', '12-16', { green: '8 kg' }, { name: 'Halo (alt)' }),
+        I('frontraise', '8-12', { green: '8 kg' }), I('uprightrow', '8-12', { green: '12 kg', amber: '2×12 kg' }, { swap: { amber: 'Chest-supported row' } }), I('rest', null, null, { durationSec: 60 })])
+    ], { back: 'load', source: 'recording', description: 'Overhead and raise work for the shoulders. Upright rows stay below shoulder height for your left shoulder.' }),
+    W('rb-chest', 'Chest Builder', 'Upper Body', 'Intermediate', 30, [
+      sec('main', '30 min EMOM', E(30), [
+        I('floorpress', 5, { green: '20 kg' }, { name: 'Floor press (left)' }), I('floorpress', 5, { green: '20 kg' }, { name: 'Floor press (right)' }),
+        I('gfloorpress', '10-12', { green: '16 kg' }), I('floorpress', '8-12', { green: '2×12 kg' }, { name: 'Double floor press' }),
+        I('zpress', '8-12', { green: '12 kg', amber: '12 kg' }, { name: 'Goblet Z press', swap: { amber: 'Goblet floor press' } }), I('deficitpu', 'MAX', null), I('rest', null, null, { durationSec: 60 })])
+    ], { source: 'recording', description: 'Floor presses heavy, then lighter, finishing with max deficit push-ups. Mostly lying down, so kind to the back.' }),
+    W('rb-back-day', 'Back Day', 'Upper Body', 'Intermediate', 30, [
+      sec('main', '30 min EMOM', E(30), [
+        I('renegade', '8-12', { green: '2×12 kg' }, { name: 'Double renegade row' }), I('row', '8-12', { green: '2×16 kg' }, { name: 'Bent-over row (alt)', swap: { amber: 'Chest-supported row' } }),
+        I('deadhighpull', '8-12', { green: '16 kg', amber: '12 kg' }, { name: 'Dead high pull (alt)' }), I('gorilla', '8-12', { green: '2×16 kg' }, { swap: { amber: 'Chest-supported row' } }),
+        I('row', '8-12', { green: '20 kg' }, { name: 'Bent-over row (left)' }), I('row', '8-12', { green: '20 kg' }, { name: 'Bent-over row (right)' }), I('rest', null, null, { durationSec: 60 })])
+    ], { back: 'load', source: 'recording', description: 'Rows from every angle for a thicker back.' }),
+    W('rb-back-power', 'Back Thickening Power', 'Upper Body', 'Intermediate', 30, [
+      sec('main', '30 min EMOM', E(30), [
+        I('dbentrow', '10-12', { green: '2×16 kg' }, { swap: { amber: 'Chest-supported row' } }), I('uprightrow', '12-15', { green: '12 kg' }, { swap: { amber: 'Chest-supported row' } }),
+        I('gorilla', '12-16', { green: '2×16 kg' }), I('ddsnatch', '8-10', { green: '2×12 kg', amber: '2×12 kg' }, { swap: { amber: 'Double swing high pull' } }),
+        I('row', '10-12', { green: '20 kg' }, { name: 'Bent-over row (left)' }), I('row', '10-12', { green: '20 kg' }, { name: 'Bent-over row (right)' }),
+        I('dhighpull', '10-12', { green: '2×12 kg' }), I('renegade', 'MAX', { green: '2×12 kg' }, { name: 'Double renegade row' })])
+    ], { back: 'load', source: 'recording', description: 'Heavy rows, snatches and high pulls.' }),
+    W('rb-biceps', 'Biceps EMOM', 'Upper Body', 'Intermediate', 12, [
+      sec('main', '12 min EMOM', E(12), [I('towelcurl', '8-12', { green: '12 kg' }), I('curl', '8-12', { green: '12 kg' }), I('squatcurl', '8-12', { green: '12 kg' })])
+    ], { back: 'care', source: 'recording', description: 'Three curl variations, four rounds.' }),
+    W('rb-arms', 'Biceps and Triceps Blaster', 'Upper Body', 'Intermediate', 10, [
+      sec('main', '10 min EMOM', E(10), [I('curl2tri', '10-12', { green: '12 kg' }), I('kneelcurl', '12-15', { green: '12 kg' }), I('ohtricep', '12-15', { green: '12 kg' }), I('squatcurl', '10-12', { green: '12 kg' }), I('pushup', 'MAX', null)])
+    ], { back: 'care', source: 'recording', description: 'Five arm moves, two rounds, finishing on max push-ups.' }),
+    W('rb-core10', 'Core EMOM', 'Core', 'Intermediate', 10, [
+      sec('main', '10 min EMOM', E(10), [
+        I('trident', '8-12', { green: '12 kg' }), I('kneelatw', '8-12', { green: '12 kg' }, { name: 'Kneeling around the world (alt)' }), I('rtwist', '8-12', { green: '12 kg' }, { swap: { amber: 'Dead bug' } }),
+        I('rackmarch', '8-12', { green: '2×12 kg' }), I('atlas', '8-12', { green: '16 kg' }), I('halo', '8-12', { green: '8 kg' }, { name: 'Halo (alt)' }),
+        I('obliquecrunch', '8-12', null, { name: 'Oblique side crunch (right)' }), I('obliquecrunch', '8-12', null, { name: 'Oblique side crunch (left)' })])
+    ], { back: 'load', source: 'recording', description: 'Ten minutes of core. Three moves have names I couldn’t confirm; check their exercise pages.' }),
+    W('rb-doubles', 'Doubles Strength', 'Full Body', 'Advanced', 21, [
+      sec('main', '21 min EMOM', E(21), [
+        I('dpress', 5, { green: '2×16 kg', amber: '2×12 kg' }, { name: 'Double shoulder press' }), I('dfsq', 5, { green: '2×16 kg', amber: '16 kg' }, { swap: { amber: 'Goblet squat' } }),
+        I('dclean', 5, { green: '2×16 kg' }, { name: 'Double swing clean' }), I('dswing', 5, { green: '2×20 kg', amber: '2×16 kg' }, { name: 'Double swings' }),
+        I('gorilla', 5, { green: '2×16 kg' }), I('dips', 5, { green: '8 kg' }), I('pullup', 5, null)],
+        { description: 'Heavy fives with double bells, then dips and pull-ups. The recording didn’t show the length, so it runs three rounds.' })
+    ], { back: 'load', source: 'recording', description: 'Low reps, heavy doubles, three rounds.' }),
+    W('rb-base', 'Base Builder', 'Full Body', 'Intermediate', 30, [
+      sec('main', '30 min EMOM', E(30), [
+        I('slings', '8-12', { green: '12 kg' }, { name: 'Around the slings (alt)' }), I('cluster', '8-12', { green: '12 kg' }, { name: 'Dead cluster (alt)' }),
+        I('gobletrow', '8-12', { green: '16 kg' }, { swap: { amber: 'Chest-supported row' } }), I('atw', '8-12', { green: '12 kg' }, { name: 'Around the world (alt)' }),
+        I('kneelcurl', '8-12', { green: '12 kg' }), I('row', '8-12', { green: '2×16 kg' }, { name: 'Bent-over row (alt)' })])
+    ], { back: 'load', source: 'recording', description: 'Six moves, five rounds: clusters, rows, curls and core passes.' }),
+    W('rb-total24', 'Total Body 24', 'Full Body', 'Intermediate', 24, [
+      sec('main', '24 min EMOM', E(24), [
+        I('swing', '8-12', { green: '16 kg' }, { name: 'Russian swing' }), I('row', '8-12', { green: '16 kg' }, { name: 'Bent-over row (left)' }), I('row', '8-12', { green: '16 kg' }, { name: 'Bent-over row (right)' }),
+        I('halo', '8-12', { green: '8 kg' }, { name: 'Halo (alt)' }), I('airsquat', '8-12', null), I('kneelcurl', '8-12', { green: '12 kg' }),
+        I('drdl', '8-12', { green: '2×16 kg' }, { name: 'Romanian deadlift' }), I('gobletpress', '8-12', { green: '12 kg' })])
+    ], { back: 'load', source: 'recording', description: 'Eight moves, three rounds, everything once.' }),
+    W('rb-core-flow', 'Core Flow', 'Core', 'Intermediate', 30, [
+      sec('main', '30 min EMOM', E(30), [
+        I('situppress', '8-12', { green: '12 kg' }, { swap: { amber: 'Dead bug' } }), I('plankdrag', '8-12', { green: '12 kg' }, { name: 'Plank side drag (alt)' }), I('halo', '8-12', { green: '8 kg' }, { name: 'Halo (alt)' }),
+        I('kneelatw', '8-12', { green: '12 kg' }), I('obliquecrunch', '8-12', null, { name: 'Oblique side crunch (left)' }), I('obliquecrunch', '8-12', null, { name: 'Oblique side crunch (right)' })])
+    ], { back: 'load', source: 'recording', description: 'Thirty minutes of core and anti-rotation work.' })
+  ];
+  const byRb = id => RB.find(w => w.id === id);
+  RB.push(W('rb-core-arms', 'Core and Arms', 'Upper Body', 'Intermediate', 32,
+    [byRb('rb-core10').sections[0], byRb('rb-biceps').sections[0], byRb('rb-arms').sections[0]].map((s, i) => ({ ...s, id: 'p' + (i + 1), title: ['Core · 10 min EMOM', 'Biceps · 12 min EMOM', 'Arms · 10 min EMOM'][i] })),
+    { back: 'load', source: 'recording', description: 'The three short EMOMs back to back: core, biceps, then biceps and triceps.' }));
+  WORKOUTS.push(...RB);
+
   // ── Programs ──
   // Days reference workouts by id. `week` can tweak a workout (rounds, reps, load) through `mods`.
   const PROGRAMS = [
@@ -390,7 +599,33 @@
         { week: 1, title: 'Base', days: ['amrap-20', 'pull-skill', 'tabata-bells'] },
         { week: 2, title: 'Doubles', days: ['emom-full-40', 'getup-practice', 'complex-gauntlet'] },
         { week: 3, title: 'Heavy', days: ['kb-power', 'pull-skill', 'chipper'] },
-        { week: 4, title: 'Re-test', days: ['amrap-20', 'getup-practice', 'emom-full-40'] } ] }
+        { week: 4, title: 'Re-test', days: ['amrap-20', 'getup-practice', 'emom-full-40'] } ] },
+    { id: 'bell-builder', name: 'Bell Builder 12', level: 'Intermediate → Advanced', weeks: 12,
+      description: 'Twelve weeks built from the sessions in the kettlebell app you recorded. Three blocks of four weeks: reps climb inside each block (bottom, middle, then top of every range), the bells go up in block 3, every fourth week is lighter, and week 12 re-tests.',
+      gate: 'Starts after the physio clears you and Back to Bells is done.', gateAll: true,
+      schedule: (() => {
+        const A = ['rb-sweat-starter', 'rb-back-power', 'rb-core-arms', 'rb-odyssey'];
+        const B = ['rb-total24', 'rb-chest', 'rb-core-flow', 'rb-back-day'];
+        const C = ['rb-doubles', 'rb-shoulder-fire', 'rb-gentle', 'rb-base'];
+        const wk = (week, title, days, mods) => ({ week, title, days: days.map(id => ({ id, mods })) });
+        return [
+          wk(1, 'Block 1 · Learn', A, { reps: 'low', note: 'Bottom of every rep range. Learn the moves.' }),
+          wk(2, 'Block 1 · Learn', B, { reps: 'low', note: 'Bottom of every rep range.' }),
+          wk(3, 'Block 1 · Build', C, { reps: 'mid', note: 'Middle of every rep range.' }),
+          wk(4, 'Lighter week', A, { reps: 'low', load: -1, scale: 0.7, note: 'Lighter week: one bell down, shorter EMOMs.' }),
+          wk(5, 'Block 2 · Volume', B, { reps: 'mid', note: 'Middle of every rep range.' }),
+          wk(6, 'Block 2 · Volume', C, { reps: 'mid', note: 'Middle of every rep range.' }),
+          wk(7, 'Block 2 · Peak reps', A, { reps: 'high', note: 'Top of every rep range.' }),
+          wk(8, 'Lighter week', B, { reps: 'low', load: -1, scale: 0.7, note: 'Lighter week: one bell down, shorter EMOMs.' }),
+          wk(9, 'Block 3 · Heavier', C, { reps: 'low', load: 1, note: 'One bell up, back to the bottom of the range.' }),
+          wk(10, 'Block 3 · Heavier', A, { reps: 'mid', load: 1, note: 'One bell up, middle of the range.' }),
+          wk(11, 'Block 3 · Heavier', B, { reps: 'high', load: 1, note: 'One bell up, top of the range.' }),
+          { week: 12, title: 'Benchmark', days: [
+            { id: 'rb-sweat-starter', mods: { reps: 'high', load: 1, note: 'Benchmark: compare with week 1. Log every bell.' } },
+            { id: 'rb-shoulder-fire', mods: { reps: 'high', note: 'Benchmark.' } },
+            { id: 'rb-gentle', mods: { reps: 'high', note: 'Easy day before the last test.' } },
+            { id: 'rb-odyssey', mods: { load: 1, note: 'Benchmark: count the minutes you finish inside the minute.' } }] }];
+      })() }
   ];
 
   const api = { EXERCISES, BY_ID, GLOSSARY, WORKOUTS, PROGRAMS, shorts };

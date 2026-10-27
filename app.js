@@ -104,7 +104,18 @@ document.addEventListener('click', ev => {
 
 // ── Workouts: where they come from ──
 function allWorkouts() { return [...LIB.WORKOUTS, ...bundled, ...D.imported, ...D.custom]; }
-function findWorkout(id) { return allWorkouts().find(w => w.id === id) || (D.player && D.player.w && D.player.w.id === id ? D.player.w : null); }
+function findWorkout(id) {
+  const m = String(id).match(/^(.+)@([\w-]+):(\d+):(\d+)$/); // a program day with that week's progression applied
+  if (m) { const p = LIB.PROGRAMS.find(x => x.id === m[2]), wk = p && p.schedule.find(x => x.week === +m[3]); if (wk && wk.days[+m[4]]) return dayWorkout(p, wk, +m[4]); }
+  return allWorkouts().find(w => w.id === id) || (D.player && D.player.w && D.player.w.id === id ? D.player.w : null);
+}
+const dayEntry = e => typeof e === 'string' ? { id: e, mods: null } : e;
+function dayWorkout(p, wk, i) {
+  const { id, mods } = dayEntry(wk.days[i]); const base = allWorkouts().find(w => w.id === id);
+  if (!base || !mods) return base || null;
+  const w = WK.applyMods(base, mods, D.settings.bells, `${p.id}:${wk.week}:${i}`);
+  w.title = base.title; w.weekNote = `Week ${wk.week} · ${mods.note || ''}`; return w;
+}
 const BACK_LABEL = { ok: 'Back-safe', care: 'Go light', load: 'Needs clearance' };
 const backAllowed = r => !(D.settings.rehab && r === 'load' && !D.settings.cleared);
 function backChip(w) { const r = WK.backRating(w); return `<span class="chip back-${r}">${BACK_LABEL[r]}</span>`; }
@@ -145,8 +156,8 @@ function renderToday() {
   <div class="progress"><span style="width:${(pr.done / pr.total * 100).toFixed(1)}%"></span></div>
   <p class="mono dim">${pr.done} of ${pr.total} days done · ${esc(wk.title)}</p>
   ${gated ? `<p class="note warn">${esc(p.gate)} When the physio clears you, turn on “Physio has cleared me” in settings.</p>` : ''}
-  <div class="days">${wk.days.map((id, i) => {
-    const w = findWorkout(id), key = `${p.id}:${wk.week}:${i}`, done = D.program.done[key], isNext = nx && nx.week === wk.week && nx.i === i;
+  <div class="days">${wk.days.map((entry, i) => {
+    const id = dayEntry(entry).id, w = dayWorkout(p, wk, i), key = `${p.id}:${wk.week}:${i}`, done = D.program.done[key], isNext = nx && nx.week === wk.week && nx.i === i;
     return `<button type="button" class="day${isNext ? ' next' : ''}${done ? ' done' : ''}" data-day="${i}">
       <span class="mono dim">Day ${i + 1}${done ? ' ✓' : ''}</span><b>${esc(w ? w.title : id)}</b>
       <span class="dim small">${w ? `${w.durationMin} min · ${BACK_LABEL[WK.backRating(w)]}` : ''}</span><span class="chev">${gated ? '🔒' : '›'}</span></button>`;
@@ -161,15 +172,18 @@ function renderToday() {
   </div>`;
   $('vToday').querySelectorAll('[data-week]').forEach(b => b.onclick = () => { viewWeek = +b.dataset.week; renderToday(); });
   $('vToday').querySelectorAll('[data-day]').forEach(b => b.onclick = () => {
-    const id = wk.days[+b.dataset.day];
-    if (gated) { toast('Week ' + wk.week + ' starts after the physio clears you.'); }
-    openWorkout(id, { program: { id: p.id, week: wk.week, i: +b.dataset.day } });
+    const w = dayWorkout(p, wk, +b.dataset.day);
+    if (gated) { toast(p.gate); }
+    openWorkout(w, { program: { id: p.id, week: wk.week, i: +b.dataset.day } });
   });
   $('vToday').querySelectorAll('[data-open-w]').forEach(b => b.onclick = () => openWorkout(b.dataset.openW));
   $('vToday').querySelectorAll('[data-quick]').forEach(b => b.onclick = () => b.dataset.quick === 'build' ? openBuilder() : openWorkout(b.dataset.quick));
   $('changeProg').onclick = () => {
-    const i = LIB.PROGRAMS.findIndex(x => x.id === p.id), n = LIB.PROGRAMS[(i + 1) % LIB.PROGRAMS.length];
-    D.program.id = n.id; save(); viewWeek = null; renderToday(); toast(`Switched to ${n.name}. Your progress in each program is kept.`);
+    const sheet = $('sheet');
+    sheet.innerHTML = `<div class="sheet-card"><h2>Programs</h2><div class="stack" style="margin-top:12px">${LIB.PROGRAMS.map(x => { const pr = programProgress(x); return `<button type="button" class="hubcard" data-prog="${x.id}"><b>${esc(x.name)}${x.id === p.id ? ' ✓' : ''}</b><span>${esc(x.level)} · ${x.schedule.length} weeks · ${pr.done}/${pr.total} days done</span><span>${esc(x.description)}</span></button>`; }).join('')}</div>
+      <div class="cta"><button class="btn ghost" type="button" id="closeSheet">Close</button></div></div>`;
+    sheet.hidden = false; $('closeSheet').onclick = () => sheet.hidden = true;
+    sheet.querySelectorAll('[data-prog]').forEach(b => b.onclick = () => { D.program.id = b.dataset.prog; save(); viewWeek = null; sheet.hidden = true; renderToday(); });
   };
   $('openMore').onclick = () => { renderMore(); show('vMore'); };
 }
@@ -195,8 +209,9 @@ function openList(which) { listState.which = which; renderList(); show('vList');
 function renderList() {
   const s = listState;
   let ws = s.which === 'library' ? LIB.WORKOUTS : [...D.imported, ...bundled, ...D.custom];
-  const focuses = ['All', 'Back-safe', 'Full Body', 'Upper Body', 'Legs', 'Core'];
-  if (s.focus === 'Back-safe') ws = ws.filter(w => WK.backRating(w) === 'ok');
+  const focuses = ['All', 'From recording', 'Back-safe', 'Full Body', 'Upper Body', 'Legs', 'Core'];
+  if (s.focus === 'From recording') ws = ws.filter(w => w.source === 'recording');
+  else if (s.focus === 'Back-safe') ws = ws.filter(w => WK.backRating(w) === 'ok');
   else if (s.focus !== 'All') ws = ws.filter(w => w.focus === s.focus);
   if (s.q) ws = ws.filter(w => (w.title + ' ' + w.sections.map(x => WK.lines(x).join(' ')).join(' ')).toLowerCase().includes(s.q.toLowerCase()));
   $('vList').innerHTML = `
@@ -227,6 +242,7 @@ function renderWorkout() {
   const blocked = !backAllowed(r);
   $('vWorkout').innerHTML = `
   <div class="bar-top"><button class="icon-btn" type="button" data-back aria-label="Back">‹</button><h2>${esc(w.title)}</h2></div>
+  ${w.weekNote ? `<p class="note">${esc(w.weekNote)}</p>` : ''}
   ${w.description ? `<p class="dim">${esc(w.description)}</p>` : ''}
   <div class="tiles"><div><span class="mono dim">Duration</span><b>${ov.minutes} min</b></div><div><span class="mono dim">Exercises</span><b>${ov.exercises}</b></div><div><span class="mono dim">Rounds</span><b>${ov.rounds}</b></div></div>
   <span class="chips">${backChip(w)}${w.level ? `<span class="chip">${esc(w.level)}</span>` : ''}</span>

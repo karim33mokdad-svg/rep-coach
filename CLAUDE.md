@@ -36,7 +36,7 @@ The camera needs HTTPS on a phone. Deploy target is GitHub Pages (`main` branch,
 ## Key files
 | File | What it is |
 |---|---|
-| `library.js` | Kettlebell library: 69 exercises (how-to, muscles, mistakes, back rating, demo pattern, camera id), glossary, workouts, programs |
+| `library.js` | Kettlebell library: 105 exercises (how-to, muscles, mistakes, back rating, demo pattern, camera id), glossary, workouts, programs |
 | `workout.js` | Pure workout engine: validation, tiers, timeline for every format, Build for me, progression, history ranges, log text |
 | `demo.js` | Animated side-view demo figure, used until a real clip is added |
 | `app.js` | Tabs and screens: Today, Workouts, Exercises, player, finish, History, settings, clip studio. Storage `repcoach-workouts-v1`, clips in IndexedDB `repcoach-clips` |

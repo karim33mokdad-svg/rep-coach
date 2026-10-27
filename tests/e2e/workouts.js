@@ -93,6 +93,8 @@ const OUT = process.env.SHOTS;
   await p.waitForSelector('#vPlayer:not([hidden]) .note', { timeout: 10000 });
   const camNote = await p.textContent('#vPlayer .note');
   check('camera reps come back into the workout', /Camera: 4 reps, 4 clean/.test(camNote), camNote);
+  await p.waitForTimeout(3000);
+  check('the camera screen stays closed after handing back', await p.isHidden('#home') && await p.isVisible('#vPlayer'));
   await p.click('#pDone'); await p.waitForSelector('#vFinish');
   check('finish shows the camera result', (await p.textContent('#vFinish')).includes('4/4 clean'));
   await p.click('#fDiscard');
@@ -114,6 +116,22 @@ const OUT = process.env.SHOTS;
   await p.waitForSelector('#vWorkout #startW');
   check('Build for me makes a back-safe AMRAP', (await p.textContent('#vWorkout')).includes('AMRAP') && (await p.textContent('#vWorkout')).includes('Back-safe'));
   await shot('w-built');
+
+  // Bell Builder 12: the program built from the recorded sessions
+  await p.click('[data-tab=today]'); await p.click('#changeProg'); await p.click('[data-prog="bell-builder"]');
+  await p.waitForSelector('#vToday .day');
+  check('Bell Builder 12 opens on week 1 with four days', (await p.textContent('#vToday h1')).includes('Bell Builder') && (await p.$$('#vToday .day')).length === 4);
+  check('it is gated behind the physio', (await p.textContent('#vToday')).includes('physio clears you'));
+  await p.click('#vToday [data-week="7"]'); await p.click('#vToday [data-day="0"]'); await p.waitForSelector('#vWorkout #startW');
+  await p.click('#vWorkout [data-tier="green"]'); await p.waitForTimeout(200);
+  const w7 = await p.evaluate(() => document.getElementById('vWorkout').innerText);
+  check('week 7 shows the top of each rep range', w7.includes('Week 7') && w7.includes('20 American swing') && w7.includes('8 Double front squat'), w7.slice(0, 200));
+  await shot('w-program-day');
+  await p.click('#vWorkout [data-back]');
+  await shot('w-program');
+  await p.click('[data-tab=hub]'); await p.click('[data-list=library]'); await p.click('[data-focus="From recording"]');
+  check('library filter shows the 16 recorded sessions', (await p.textContent('#vList .mono')).includes('16 results'), await p.textContent('#vList .mono'));
+  await shot('w-recording-list');
 
   // library
   await p.click('[data-tab=lib]'); await p.waitForSelector('#vLib .exrow');

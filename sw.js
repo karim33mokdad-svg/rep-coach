@@ -1,5 +1,5 @@
 // App code (html/js/manifest) is network-first so updates arrive on the next open; the heavy pose model files are cache-first.
-const CACHE = 'repcoach-v3';
+const CACHE = 'repcoach-v4';
 const SHELL = ['./', 'index.html', 'coach.js', 'library.js', 'workout.js', 'demo.js', 'app.js', 'workouts/index.json', 'workouts/2026-10-18-kb-power.json', 'clips/index.json', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png',
   'mp/pose.js', 'mp/pose_web.binarypb', 'mp/pose_solution_packed_assets_loader.js', 'mp/pose_solution_packed_assets.data',
   'mp/pose_solution_simd_wasm_bin.js', 'mp/pose_solution_simd_wasm_bin.wasm', 'mp/pose_landmark_full.tflite', 'mp/pose_landmark_lite.tflite'];

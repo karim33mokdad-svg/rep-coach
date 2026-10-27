@@ -8,7 +8,13 @@ console.log('Library');
 check('every exercise has how-to, muscles and a back rating', L.EXERCISES.every(e => e.id === 'rest' || (e.how.length && e.primary && ['ok', 'care', 'load'].includes(e.back))));
 check('every camera id exists in coach.js', L.EXERCISES.filter(e => e.camera).every(e => require('../coach.js').EX[e.camera]));
 check('every library workout validates', L.WORKOUTS.every(w => W.validate(w).ok), L.WORKOUTS.filter(w => !W.validate(w).ok).map(w => w.id + ': ' + W.validate(w).errors[0]).join('; '));
-check('every program day points at a workout', L.PROGRAMS.every(p => p.schedule.every(wk => wk.days.every(id => L.WORKOUTS.some(w => w.id === id)))));
+const dayId = d => typeof d === 'string' ? d : d.id;
+check('every program day points at a workout', L.PROGRAMS.every(p => p.schedule.every(wk => wk.days.every(d => L.WORKOUTS.some(w => w.id === dayId(d))))));
+const recIds = ['rb-sweat-starter', 'rb-odyssey', 'rb-gentle', 'rb-foundation', 'rb-shoulder-fire', 'rb-chest', 'rb-back-day', 'rb-back-power', 'rb-biceps', 'rb-arms', 'rb-core10', 'rb-doubles', 'rb-base', 'rb-total24', 'rb-core-flow'];
+check('all 15 sessions from the recording are in the library', recIds.every(id => L.WORKOUTS.some(w => w.id === id && w.source === 'recording')));
+const BB = L.PROGRAMS.find(p => p.id === 'bell-builder');
+check('Bell Builder: 12 weeks of 4 days, every recorded session used', BB.schedule.length === 12 && BB.schedule.every(w => w.days.length === 4) && recIds.filter(id => !['rb-foundation', 'rb-biceps', 'rb-arms', 'rb-core10'].includes(id)).every(id => BB.schedule.some(w => w.days.some(d => dayId(d) === id))));
+check('sweat starter is a 40-minute EMOM of 8 moves (5 rounds)', W.timeline(L.WORKOUTS.find(w => w.id === 'rb-sweat-starter')).filter(s => s.emom).length === 40);
 check('back-safe workouts use only back-safe exercises', L.WORKOUTS.filter(w => w.back === 'ok').every(w => w.sections.every(s => s.items.every(it => L.BY_ID[it.ex].back === 'ok'))));
 check('swings, deadlifts and loaded squats need clearance', ['swing', 'kbdl', 'goblet', 'dfsq', 'snatch', 'clean'].every(id => L.BY_ID[id].back === 'load'));
 
@@ -48,6 +54,19 @@ t = one({ type: 'straight' }, [{ ex: 'press', reps: 5, perSide: true, sets: 2, r
 check('straight sets: rest between sets, none after the last', t.map(s => s.kind[0]).join('') === 'rwrw' && t[2].dur === 90 && t[1].items[0].reps === '5/side');
 t = one({ type: 'fortime', rounds: 2, capSec: 900 }, it2).filter(s => s.kind === 'work');
 check('for time: every move every round, untimed', t.length === 4 && t.every(s => s.dur === null && s.fortime));
+
+console.log('Program progression');
+const ss0 = L.WORKOUTS.find(w => w.id === 'rb-sweat-starter');
+const repsOf = (w, name) => W.timeline(w).find(s => s.kind === 'work' && s.items[0].name === name).items[0];
+check('week 1 uses the bottom of each range', repsOf(W.applyMods(ss0, BB.schedule[0].days[0].mods), 'Double front squat').reps === '6');
+check('week 7 uses the top of each range', repsOf(W.applyMods(ss0, BB.schedule[6].days[0].mods), 'American swing').reps === '20');
+const w10 = W.applyMods(ss0, BB.schedule[9].days[0].mods, [8, 12, 16, 20, 24]);
+check('block 3 moves every bell up one size', repsOf(w10, 'Double front squat').load === '2×20 kg' && repsOf(w10, 'Double Romanian deadlift').load === '2×20 kg');
+check('warm-up loads are left alone', w10.sections[0].items[0].load.green === '16 kg');
+const w4 = W.applyMods(ss0, BB.schedule[3].days[0].mods, [8, 12, 16, 20, 24]);
+check('lighter week: shorter EMOM and one bell down', W.timeline(w4).filter(s => s.emom).length === 28 && repsOf(w4, 'Double front squat').load === '2×12 kg');
+check('program days get their own id per week', W.applyMods(ss0, { reps: 'low' }, undefined, 'bell-builder:1:0').id === 'rb-sweat-starter@bell-builder:1:0');
+check('the original workout is not changed', ss0.sections[1].items[0].reps === '6-8');
 
 console.log('Loads and progression');
 check('parses 2×16 kg', JSON.stringify(W.parseLoad('2×16 kg')) === '{"n":2,"kg":16}');

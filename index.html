@@ -536,6 +536,7 @@ const fmt = s => s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '
 
 let afterSession = null; // set when a workout's "Coach this set" opened the camera
 function finishSession() {
+  if (!session && phase === 'idle') return; // already finished (End set schedules a second call)
   running = false; phase = 'idle'; clearInterval(restTimer);
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
   try { wake && wake.release(); } catch (e) {} wake = null;
