@@ -9,7 +9,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const KEY = 'repcoach-workouts-v1';
 const DEFAULTS = { v: 1, imported: [], custom: [], sessions: [], program: { id: 'back-to-bells', done: {} }, player: null,
-  settings: { rehab: true, cleared: false, bells: [8, 12, 16, 20, 24], voice: true, beeps: true, spotify: '', ytm: '' } };
+  settings: { rehab: true, cleared: false, bells: [8, 12, 16, 20, 24], voice: true, beeps: true, spotify: '', ytm: '', autoMusic: true } };
 const db = {
   read() { try { const v = JSON.parse(localStorage.getItem(KEY)); return v ? { ...DEFAULTS, ...v, settings: { ...DEFAULTS.settings, ...(v.settings || {}) }, program: { ...DEFAULTS.program, ...(v.program || {}) } } : structuredClone(DEFAULTS); } catch (e) { return structuredClone(DEFAULTS); } },
   write(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) { toast('Couldn’t save on this phone. Storage may be full.'); } }
@@ -88,6 +88,34 @@ function openMusicSheet() {
     <div class="cta">${musicLinks()}</div>${!D.settings.spotify && !D.settings.ytm ? '<p class="note">Add your playlist links in Settings so these open straight on them.</p>' : ''}
     <div class="cta"><button class="btn ghost" type="button" id="closeSheet">Close</button></div></div>`;
   sheet.hidden = false; $('closeSheet').onclick = () => sheet.hidden = true;
+}
+
+// Spotify remote (spotify.js): a mini player in the workout player when connected
+const SPT = window.RepSpotify;
+let spState = null, spPoll = 0;
+function spBarHtml() {
+  if (!SPT || !SPT.connected) return '';
+  const st = spState;
+  return `<div class="spbar" id="spBar"><span class="sp-t">${st && st.track ? `<b>${esc(st.track)}</b><br><span class="dim small">${esc(st.artist)}</span>` : `<span class="dim small">${st && st.err ? esc(st.err) : 'Spotify connected'}</span>`}</span>
+    <button type="button" class="icon-btn" data-sp="prev" aria-label="Previous song">⏮</button><button type="button" class="icon-btn" data-sp="toggle" aria-label="${st && st.playing ? 'Pause music' : 'Play music'}">${st && st.playing ? '⏸' : '▶'}</button><button type="button" class="icon-btn" data-sp="next" aria-label="Next song">⏭</button></div>`;
+}
+function paintSp() { const el = $('spBar'); if (el) { el.outerHTML = spBarHtml(); bindSp(); } }
+function bindSp() {
+  document.querySelectorAll('[data-sp]').forEach(b => b.onclick = async () => {
+    const a = b.dataset.sp;
+    try {
+      if (a === 'toggle') { if (spState && spState.playing) await SPT.pause(); else await SPT.play(); }
+      else await SPT[a]();
+      setTimeout(refreshSp, 600);
+    } catch (e) { spState = { ...(spState || {}), err: e.message }; paintSp(); }
+  });
+}
+async function refreshSp() { if (!SPT || !SPT.connected) return; try { spState = await SPT.now(); } catch (e) { spState = { err: e.message }; } paintSp(); }
+function startSpPoll() { clearInterval(spPoll); if (!SPT || !SPT.connected) return; refreshSp(); spPoll = setInterval(() => { if ($('vPlayer').hidden) { clearInterval(spPoll); return; } refreshSp(); }, 5000); }
+async function autoStartMusic() {
+  if (!SPT || !SPT.connected || !D.settings.autoMusic) return;
+  const uri = SPT.uriFromLink(D.settings.spotify);
+  try { await SPT.play(uri); setTimeout(refreshSp, 800); } catch (e) { spState = { err: e.message }; paintSp(); }
 }
 
 // ── Navigation ──
@@ -469,6 +497,7 @@ function startPlayer(w, tier, program, resume) {
   PL = resume ? { ...resume, steps, w } : { w, tier, program, steps, i: 0, startedAt: Date.now(), log: {}, amrap: 0, missed: {}, pausedFor: 0 };
   PL.paused = false; PL.stepStart = performance.now(); PL.stepEnd = null;
   persist(); show('vPlayer'); enterStep();
+  if (!resume) autoStartMusic(); startSpPoll();
   navigator.wakeLock?.request('screen').then(l => wake = l).catch(() => {});
   clearInterval(tickT); tickT = setInterval(tick, 200);
 }
@@ -497,6 +526,7 @@ function renderPlayer() {
   $('vPlayer').innerHTML = `
   <div class="pbar"><button class="icon-btn" type="button" id="pExit" aria-label="Leave workout">‹</button><b>${esc(s.title)}</b>
     <button class="icon-btn" type="button" id="pMusic" aria-label="Music">♫</button><button class="icon-btn" type="button" id="pVoice" aria-label="Voice ${D.settings.voice ? 'on' : 'off'}">${D.settings.voice ? '🔊' : '🔇'}</button></div>
+  ${spBarHtml()}
   <div class="clockbar ${isRest ? 'resting' : ''}"><span class="fill" id="pFill"></span><span class="lab">${esc(isRest ? s.label : s.label)}</span><span class="time" id="pTime">0:00</span></div>
   <div class="mono dim center">${workIdx} of ${workTotal} · ${WK.clock((Date.now() - PL.startedAt) / 1000 - (PL.pausedFor || 0))} total</div>
   ${hero ? `<div class="now"><span class="mono">${isRest ? 'Next' : 'Now'}${hero.reps ? ': ' + esc(hero.reps) : ''}${hero.side ? ' · ' + esc(hero.side) : ''}</span>
@@ -519,6 +549,7 @@ function renderPlayer() {
   $('pExit').onclick = () => { if (confirm('Leave the workout? Your place is saved, so you can resume it from Today.')) leavePlayer(false); };
   $('pVoice').onclick = () => { D.settings.voice = !D.settings.voice; save(); renderPlayer(); };
   $('pMusic').onclick = openMusicSheet;
+  bindSp();
   $('pPause').onclick = togglePause;
   $('pSkip').onclick = () => advance(false);
   $('pPrev').onclick = () => { if (PL.i > 0) { PL.i--; while (PL.i > 0 && step().kind === 'rest') PL.i--; persist(); enterStep(); } };
@@ -679,6 +710,18 @@ function renderMore() {
     <p class="dim small">In the music app, open your playlist, tap Share, then Copy link, and paste it here. The ♫ button in the player then opens it in one tap.</p>
     <p class="err" id="mErr" hidden></p>
   </div>
+  <div class="lbl">Spotify remote</div>
+  <div class="setup">
+    ${SPT && SPT.connected ? `<p><b>Connected.</b> The player shows the song with play, pause and skip.</p>
+      <label class="switch"><input type="checkbox" id="sAuto" ${st.autoMusic ? 'checked' : ''}><span><b>Start my playlist when I press Start</b><br><span class="dim small">Uses the Spotify playlist link above.</span></span></label>
+      <div class="cta"><button class="btn ghost" type="button" id="spTest">Test: play</button><button class="btn ghost" type="button" id="spOff">Disconnect</button></div>` : `
+      <p class="dim small">Control the Spotify app from the workout player. Needs Spotify Premium and a free developer app:</p>
+      <ol class="how small"><li>Go to developer.spotify.com/dashboard, log in, tap <b>Create app</b>.</li><li>Any name. Redirect URI: <code id="spUri">${esc(SPT ? SPT.redirectUri() : '')}</code> <button type="button" class="link" id="spCopyUri">Copy</button></li><li>Tick <b>Web API</b>, save, and copy the <b>Client ID</b> into the box below.</li></ol>
+      <div class="field"><label class="mono dim" for="spId">Client ID</label><input class="search" id="spId" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(SPT ? SPT.clientId : '')}" placeholder="32 letters and numbers"></div>
+      <div class="cta"><button class="btn go" type="button" id="spGo">Connect Spotify</button></div>
+      <details><summary>Got a connection code?</summary><p class="dim small">If the sign-in finished in Safari, it showed a code. Paste it here.</p><input class="search" id="spCode" autocomplete="off" placeholder="Paste the code"><div class="cta"><button class="btn ghost" type="button" id="spPaste">Use code</button></div></details>`}
+    <p class="err" id="spErr" hidden></p>
+  </div>
   <div class="lbl">Backup</div>
   <div class="cta"><button class="btn ghost" type="button" id="bExport">Back up workouts</button><label class="btn ghost" for="bImport" style="text-align:center">Restore</label><input type="file" id="bImport" accept="application/json" hidden></div>
   <p class="note">The backup holds your workouts, logs and settings, not clips or camera sets. It stays on this phone unless you share it.</p>
@@ -687,6 +730,17 @@ function renderMore() {
   const bind = (id, k) => $(id).onchange = e => { st[k] = e.target.checked; save(); };
   const musicField = (id, k) => $(id).onchange = e => { const v = e.target.value.trim(); if (v && !MUSIC[k].ok(v)) { $('mErr').textContent = `That doesn\u2019t look like a ${MUSIC[k].name} link. Copy it from the app\u2019s Share button.`; $('mErr').hidden = false; return; } $('mErr').hidden = true; st[k] = v; save(); toast(v ? `${MUSIC[k].name} playlist saved.` : `${MUSIC[k].name} link removed.`); };
   musicField('mSpot', 'spotify'); musicField('mYtm', 'ytm');
+  const spErr = t => { $('spErr').textContent = t; $('spErr').hidden = false; };
+  if ($('spGo')) $('spGo').onclick = async () => {
+    const id = $('spId').value.trim();
+    if (!/^[a-f0-9]{32}$/i.test(id)) return spErr('A Client ID is 32 letters and numbers. Copy it from your app\u2019s page on the Spotify dashboard.');
+    SPT.setClientId(id); try { await SPT.connect(); } catch (e) { spErr(e.message); }
+  };
+  if ($('spCopyUri')) $('spCopyUri').onclick = async () => { try { await navigator.clipboard.writeText(SPT.redirectUri()); toast('Redirect URI copied.'); } catch (e) { toast('Couldn\u2019t copy. Select it and copy it yourself.'); } };
+  if ($('spPaste')) $('spPaste').onclick = async () => { try { await SPT.pasteCode($('spCode').value); toast('Spotify connected.'); renderMore(); } catch (e) { spErr(e.message); } };
+  if ($('spOff')) $('spOff').onclick = () => { SPT.disconnect(); toast('Spotify disconnected.'); renderMore(); };
+  if ($('spTest')) $('spTest').onclick = async () => { try { await SPT.play(SPT.uriFromLink(st.spotify)); toast('Playing on Spotify.'); } catch (e) { spErr(e.message); } };
+  if ($('sAuto')) $('sAuto').onchange = e => { st.autoMusic = e.target.checked; save(); };
   bind('sRehab', 'rehab'); bind('sCleared', 'cleared'); bind('sVoice', 'voice'); bind('sBeeps', 'beeps');
   $('vMore').querySelectorAll('[data-bell]').forEach(b => b.onclick = () => { const k = +b.dataset.bell; st.bells = st.bells.includes(k) ? st.bells.filter(x => x !== k) : [...st.bells, k].sort((a, c) => a - c); if (!st.bells.length) st.bells = [k]; save(); renderMore(); });
   $('bExport').onclick = async () => {
@@ -705,6 +759,17 @@ RENDER.vMore = renderMore;
 
 // ── Start up ──
 async function boot() {
+  if (SPT) {
+    const r = await SPT.handleRedirect();
+    if (r && r.connected) { toast('Spotify connected.'); renderMore(); show('vMore', { push: false }); return; }
+    if (r && r.error) toast(r.error);
+    if (r && r.code) {
+      $('sheet').innerHTML = `<div class="sheet-card"><h2>One more step</h2><p class="dim small">Spotify finished signing in here, in Safari, which can\u2019t reach the Home Screen app\u2019s storage. Copy this code, open Rep Coach from your Home Screen, go to Settings → Spotify remote → Got a connection code, and paste it.</p>
+        <textarea rows="4" readonly id="spOut">${esc(r.code)}</textarea><div class="cta"><button class="btn go" type="button" id="spCopy">Copy code</button></div><p class="dim small">If you use Rep Coach in Safari rather than from the Home Screen, paste it in Settings here instead.</p></div>`;
+      $('sheet').hidden = false;
+      $('spCopy').onclick = async () => { try { await navigator.clipboard.writeText(r.code); $('spCopy').textContent = 'Copied'; } catch (e) { $('spOut').select(); } };
+    }
+  }
   try { const r = await fetch('workouts/index.json', { cache: 'no-cache' }); if (r.ok) { const idx = await r.json(); bundled = (await Promise.all(idx.workouts.map(x => fetch(x.file).then(y => y.ok ? y.json() : null).catch(() => null)))).filter(w => w && WK.validate(w).ok); } } catch (e) {}
   try { const r = await fetch('clips/index.json', { cache: 'no-cache' }); if (r.ok) bundledClips = (await r.json()).clips || {}; } catch (e) {}
   clipSet = new Set([...(await clips.keys()), ...Object.keys(bundledClips)]);

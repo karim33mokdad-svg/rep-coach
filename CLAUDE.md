@@ -18,6 +18,7 @@ python3 -m http.server 8765        # then open http://localhost:8765 (localhost 
 node tests/coach.test.js           # engine tests, must stay green
 node tests/workout.test.js         # workout engine and library, must stay green
 node tests/e2e/workouts.js         # kettlebell flow: player, camera hand-off, finish, history, import, builder
+node tests/e2e/spotify.js          # Spotify remote with Spotify mocked
 node tests/fixtures.test.js        # replay recorded fixtures, must meet targets (--report to just print)
 node tests/e2e/flow.js             # full-flow test (needs playwright + a local server on 8765)
 node tests/e2e/recorder.js         # debug recorder flow, same setup
@@ -40,6 +41,7 @@ The camera needs HTTPS on a phone. Deploy target is GitHub Pages (`main` branch,
 | `workout.js` | Pure workout engine: validation, tiers, timeline for every format, Build for me, progression, history ranges, log text |
 | `demo.js` | Animated side-view demo figure, used until a real clip is added |
 | `app.js` | Tabs and screens: Today, Workouts, Exercises, player, finish, History, settings, clip studio. Storage `repcoach-workouts-v1`, clips in IndexedDB `repcoach-clips` |
+| `spotify.js` | Spotify remote (PKCE sign-in, play/pause/skip, start a playlist). Owner's Client ID and tokens in `repcoach-spotify-v1` |
 | `clips/index.json` | Technique clips shipped with the app (only self-filmed or licensed) |
 | `coach.js` | Exercise library (`EX`), geometry helpers, `createTracker()` state machine, fixture format helpers (`fixture`) |
 | `tests/fixtures/` | Recorded landmark streams with hand labels, replayed by `tests/fixtures.test.js` |
