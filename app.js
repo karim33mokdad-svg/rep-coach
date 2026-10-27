@@ -84,10 +84,40 @@ function musicLinks() {
 }
 function openMusicSheet() {
   const sheet = $('sheet');
-  sheet.innerHTML = `<div class="sheet-card"><h2>Music</h2><p class="dim small">Opens your workout playlist in the music app. Start it playing, then switch back here; the music keeps going and the coach talks over it.</p>
-    <div class="cta">${musicLinks()}</div>${!D.settings.spotify && !D.settings.ytm ? '<p class="note">Add your playlist links in Settings so these open straight on them.</p>' : ''}
+  const sp = SPT && SPT.connected;
+  sheet.innerHTML = `<div class="sheet-card"><h2>Music</h2>
+    ${sp ? `<div id="spBrowse"><p class="dim small">Loading your playlists…</p></div>` : `<p class="dim small">Opens your workout playlist in the music app. Start it playing, then switch back here; the music keeps going and the coach talks over it.</p>`}
+    <div class="lbl">Open the app</div><div class="cta">${musicLinks()}</div>
+    ${!D.settings.spotify && !D.settings.ytm && !sp ? '<p class="note">Add your playlist links in Settings so these open straight on them.</p>' : ''}
     <div class="cta"><button class="btn ghost" type="button" id="closeSheet">Close</button></div></div>`;
   sheet.hidden = false; $('closeSheet').onclick = () => sheet.hidden = true;
+  if (sp) browsePlaylists();
+}
+let spLists = null;
+async function browsePlaylists() {
+  const box = $('spBrowse'); if (!box) return;
+  if (!SPT.canBrowse) {
+    box.innerHTML = `<p class="note">To show your playlists here, Spotify needs one more sign-in (it asks for permission to read your playlists).</p><div class="cta"><button class="btn go" type="button" id="spRe">Reconnect Spotify</button></div>`;
+    $('spRe').onclick = () => SPT.connect().catch(e => toast(e.message)); return;
+  }
+  try { spLists = spLists || await SPT.playlists(); } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  const cur = SPT.uriFromLink(D.settings.spotify);
+  box.innerHTML = `<div class="lbl">Your playlists</div><div class="stack pl-list">${spLists.map((p, i) => `<button type="button" class="plrow" data-pl="${i}">${p.image ? `<img src="${esc(p.image)}" alt="">` : '<span class="plimg"></span>'}<span><b>${esc(p.name)}</b><br><span class="dim small">${p.count != null ? p.count + ' songs' : esc(p.owner || '')}${p.uri === cur ? ' · workout playlist' : ''}</span></span></button>`).join('') || '<p class="dim small">No playlists on this Spotify account yet.</p>'}</div>`;
+  box.querySelectorAll('[data-pl]').forEach(b => b.onclick = () => openPlaylist(spLists[+b.dataset.pl]));
+}
+async function openPlaylist(p) {
+  const box = $('spBrowse'); if (!box) return;
+  box.innerHTML = `<div class="bar-top"><button class="icon-btn" type="button" id="plBack" aria-label="Back to playlists">‹</button><h2>${esc(p.name)}</h2></div>
+    <div class="cta"><button class="btn go" type="button" id="plPlay">▶ Play</button><button class="btn ghost" type="button" id="plUse">${SPT.uriFromLink(D.settings.spotify) === p.uri ? '✓ Workout playlist' : 'Use for workouts'}</button></div>
+    <div id="plTracks"><p class="dim small">Loading songs…</p></div>`;
+  $('plBack').onclick = browsePlaylists;
+  $('plPlay').onclick = () => spPlay(p.uri, null, p.link);
+  $('plUse').onclick = () => { D.settings.spotify = p.link || `https://open.spotify.com/playlist/${p.id}`; save(); $('plUse').textContent = '✓ Workout playlist'; toast('Rep Coach will start this playlist when you press Start.'); };
+  const ts = await SPT.tracks(p.id).catch(() => null);
+  const el = $('plTracks'); if (!el) return;
+  el.innerHTML = ts ? `<div class="stack">${ts.map((t, i) => `<button type="button" class="plrow track" data-t="${i}">${t.image ? `<img src="${esc(t.image)}" alt="">` : '<span class="plimg"></span>'}<span><b>${esc(t.name)}</b><br><span class="dim small">${esc(t.artist)} · ${Math.floor(t.ms / 60000)}:${String(Math.round(t.ms / 1000) % 60).padStart(2, '0')}</span></span></button>`).join('')}</div>`
+    : `<p class="note">Spotify only shows the songs of playlists you made or collaborate on. You can still play this one, and skip songs from the player.</p>`;
+  if (ts) el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => spPlay(p.uri, ts[+b.dataset.t].uri, p.link));
 }
 
 // Spotify remote (spotify.js): a mini player in the workout player when connected
@@ -96,7 +126,7 @@ let spState = null, spPoll = 0;
 function spBarHtml() {
   if (!SPT || !SPT.connected) return '';
   const st = spState;
-  return `<div class="spbar" id="spBar"><span class="sp-t">${st && st.track ? `<b>${esc(st.track)}</b><br><span class="dim small">${esc(st.artist)}</span>` : `<span class="dim small">${st && st.err ? esc(st.err) : 'Spotify connected'}</span>`}</span>
+  return `<div class="spbar" id="spBar"><span class="sp-t">${st && st.track ? `<b>${esc(st.track)}</b><br><span class="dim small">${esc(st.artist)}</span>` : `<span class="dim small">${st && st.err ? esc(st.err) : 'Spotify connected'}</span>${st && st.wake ? `<br><a class="link" href="${esc(st.wake)}" target="_blank" rel="noopener">Open Spotify ↗</a>` : ''}`}</span>
     <button type="button" class="icon-btn" data-sp="prev" aria-label="Previous song">⏮</button><button type="button" class="icon-btn" data-sp="toggle" aria-label="${st && st.playing ? 'Pause music' : 'Play music'}">${st && st.playing ? '⏸' : '▶'}</button><button type="button" class="icon-btn" data-sp="next" aria-label="Next song">⏭</button></div>`;
 }
 function paintSp() { const el = $('spBar'); if (el) { el.outerHTML = spBarHtml(); bindSp(); } }
@@ -104,18 +134,41 @@ function bindSp() {
   document.querySelectorAll('[data-sp]').forEach(b => b.onclick = async () => {
     const a = b.dataset.sp;
     try {
-      if (a === 'toggle') { if (spState && spState.playing) await SPT.pause(); else await SPT.play(); }
+      if (a === 'toggle') { if (spState && spState.playing) await SPT.pause(); else if (!(await spPlay(null, null, D.settings.spotify))) return; }
       else await SPT[a]();
       setTimeout(refreshSp, 600);
-    } catch (e) { spState = { ...(spState || {}), err: e.message }; paintSp(); }
+    } catch (e) { spState = e.noDevice ? { err: 'Spotify is asleep on your phone. Tap Open Spotify, then come back.', wake: D.settings.spotify || 'https://open.spotify.com/' } : { ...(spState || {}), err: e.message }; paintSp(); }
   });
 }
-async function refreshSp() { if (!SPT || !SPT.connected) return; try { spState = await SPT.now(); } catch (e) { spState = { err: e.message }; } paintSp(); }
+async function refreshSp() {
+  if (!SPT || !SPT.connected) return;
+  try { const n = await SPT.now(); if (n.track || !(spState && spState.err)) spState = n; } catch (e) { if (!(spState && spState.err)) spState = { err: e.message }; }
+  paintSp();
+}
 function startSpPoll() { clearInterval(spPoll); if (!SPT || !SPT.connected) return; refreshSp(); spPoll = setInterval(() => { if ($('vPlayer').hidden) { clearInterval(spPoll); return; } refreshSp(); }, 5000); }
+// Play on Spotify. If Spotify isn't awake on the phone, offer to open it and retry when you come back.
+let spPending = null;
+async function spPlay(context, track, link) {
+  try { await SPT.play(context, track); spPending = null; toast('Playing on Spotify.'); setTimeout(refreshSp, 800); return true; }
+  catch (e) {
+    if (e.noDevice) { spPending = { context, track, link, tries: 0 }; spState = { err: 'Spotify is asleep on your phone. Tap Open Spotify, then come back; the music starts by itself.', wake: link || D.settings.spotify || 'https://open.spotify.com/' }; }
+    else spState = { err: e.message };
+    paintSp(); if (!$('vPlayer').hidden) { /* shown in the bar */ } else toast(spState.err); return false;
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !spPending) return;
+  const retry = async () => {
+    if (!spPending) return;
+    spPending.tries++;
+    try { await SPT.play(spPending.context, spPending.track); spPending = null; spState = null; toast('Playing on Spotify.'); setTimeout(refreshSp, 800); }
+    catch (e) { if (spPending && spPending.tries < 4) setTimeout(retry, 1500); else { spPending = null; spState = { err: 'Spotify still isn\u2019t answering. Press play in the Spotify app once, then use ▶ here.' }; paintSp(); } }
+  };
+  setTimeout(retry, 700);
+});
 async function autoStartMusic() {
   if (!SPT || !SPT.connected || !D.settings.autoMusic) return;
-  const uri = SPT.uriFromLink(D.settings.spotify);
-  try { await SPT.play(uri); setTimeout(refreshSp, 800); } catch (e) { spState = { err: e.message }; paintSp(); }
+  await spPlay(SPT.uriFromLink(D.settings.spotify), null, D.settings.spotify);
 }
 
 // ── Navigation ──
@@ -714,7 +767,7 @@ function renderMore() {
   <div class="setup">
     ${SPT && SPT.connected ? `<p><b>Connected.</b> The player shows the song with play, pause and skip.</p>
       <label class="switch"><input type="checkbox" id="sAuto" ${st.autoMusic ? 'checked' : ''}><span><b>Start my playlist when I press Start</b><br><span class="dim small">Uses the Spotify playlist link above.</span></span></label>
-      <div class="cta"><button class="btn ghost" type="button" id="spTest">Test: play</button><button class="btn ghost" type="button" id="spOff">Disconnect</button></div>` : `
+      <div class="cta"><button class="btn ghost" type="button" id="spTest">Test: play</button><button class="btn ghost" type="button" id="spBrowseBtn">Pick playlist</button><button class="btn ghost" type="button" id="spOff">Disconnect</button></div>` : `
       <p class="dim small">Control the Spotify app from the workout player. Needs Spotify Premium and a free developer app:</p>
       <ol class="how small"><li>Go to developer.spotify.com/dashboard, log in, tap <b>Create app</b>.</li><li>Any name. Redirect URI: <code id="spUri">${esc(SPT ? SPT.redirectUri() : '')}</code> <button type="button" class="link" id="spCopyUri">Copy</button></li><li>Tick <b>Web API</b>, save, and copy the <b>Client ID</b> into the box below.</li></ol>
       <div class="field"><label class="mono dim" for="spId">Client ID</label><input class="search" id="spId" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(SPT ? SPT.clientId : '')}" placeholder="32 letters and numbers"></div>
@@ -739,7 +792,8 @@ function renderMore() {
   if ($('spCopyUri')) $('spCopyUri').onclick = async () => { try { await navigator.clipboard.writeText(SPT.redirectUri()); toast('Redirect URI copied.'); } catch (e) { toast('Couldn\u2019t copy. Select it and copy it yourself.'); } };
   if ($('spPaste')) $('spPaste').onclick = async () => { try { await SPT.pasteCode($('spCode').value); toast('Spotify connected.'); renderMore(); } catch (e) { spErr(e.message); } };
   if ($('spOff')) $('spOff').onclick = () => { SPT.disconnect(); toast('Spotify disconnected.'); renderMore(); };
-  if ($('spTest')) $('spTest').onclick = async () => { try { await SPT.play(SPT.uriFromLink(st.spotify)); toast('Playing on Spotify.'); } catch (e) { spErr(e.message); } };
+  if ($('spTest')) $('spTest').onclick = async () => { if (!(await spPlay(SPT.uriFromLink(st.spotify), null, st.spotify))) spErr(spState.err); };
+  if ($('spBrowseBtn')) $('spBrowseBtn').onclick = openMusicSheet;
   if ($('sAuto')) $('sAuto').onchange = e => { st.autoMusic = e.target.checked; save(); };
   bind('sRehab', 'rehab'); bind('sCleared', 'cleared'); bind('sVoice', 'voice'); bind('sBeeps', 'beeps');
   $('vMore').querySelectorAll('[data-bell]').forEach(b => b.onclick = () => { const k = +b.dataset.bell; st.bells = st.bells.includes(k) ? st.bells.filter(x => x !== k) : [...st.bells, k].sort((a, c) => a - c); if (!st.bells.length) st.bells = [k]; save(); renderMore(); });

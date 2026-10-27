@@ -9,7 +9,7 @@
 (function (root) {
   'use strict';
   const KEY = 'repcoach-spotify-v1';
-  const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing';
+  const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative';
   const AUTH = 'https://accounts.spotify.com/authorize', TOKEN = 'https://accounts.spotify.com/api/token', API = 'https://api.spotify.com/v1';
   const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
   const write = v => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} };
@@ -21,6 +21,8 @@
     get clientId() { return read().clientId || ''; },
     setClientId(id) { const s = read(); s.clientId = String(id || '').trim(); write(s); },
     get connected() { return !!read().refresh; },
+    // older connections were made before playlists were added; they need one more sign-in
+    get canBrowse() { const sc = read().scope; return sc == null ? false : /playlist-read-private/.test(sc); },
     redirectUri,
     async connect() {
       const s = read(); if (!s.clientId) throw new Error('Add your Client ID first.');
@@ -69,7 +71,7 @@
         const reason = j && j.error && (j.error.reason || j.error.message) || '';
         const err = new Error(/NO_ACTIVE_DEVICE/i.test(reason) || r.status === 404 ? 'Spotify isn’t open on any device. Open the Spotify app, play anything for a second, then try again.'
           : /PREMIUM/i.test(reason) || r.status === 403 ? 'Spotify only allows remote control with Premium.' : `Spotify didn’t accept that (${r.status}).`);
-        err.status = r.status; throw err;
+        err.status = r.status; err.noDevice = /NO_ACTIVE_DEVICE/i.test(reason) || r.status === 404; throw err;
       }
       return j;
     },
@@ -83,8 +85,21 @@
       const d = ds.find(x => x.is_active) || ds.find(x => /smartphone/i.test(x.type)) || ds[0];
       return d ? d.id : null;
     },
-    async play(contextUri) {
-      const body = contextUri ? { context_uri: contextUri } : undefined;
+    async playlists() {
+      const j = await SP.api('GET', '/me/playlists?limit=50');
+      return ((j && j.items) || []).filter(Boolean).map(p => ({ id: p.id, name: p.name, uri: p.uri, link: p.external_urls && p.external_urls.spotify, image: imgOf(p.images), count: (p.items || p.tracks || {}).total ?? null, owner: p.owner && p.owner.display_name }));
+    },
+    // Spotify only lists the songs of playlists you own or collaborate on; for others this returns null.
+    async tracks(id) {
+      let j;
+      try { j = await SP.api('GET', `/playlists/${id}/items?limit=100`); }
+      catch (e) { if (e.status === 403 || e.status === 404) return null; try { j = await SP.api('GET', `/playlists/${id}/tracks?limit=100`); } catch (e2) { return null; } }
+      if (!j || !j.items) return null;
+      return j.items.map(x => x && (x.item || x.track)).filter(t => t && t.uri)
+        .map(t => ({ uri: t.uri, name: t.name, artist: (t.artists || []).map(a => a.name).join(', '), ms: t.duration_ms, image: imgOf(t.album && t.album.images, true) }));
+    },
+    async play(contextUri, trackUri) {
+      const body = contextUri ? { context_uri: contextUri, ...(trackUri ? { offset: { uri: trackUri } } : {}) } : undefined;
       try { return await SP.api('PUT', '/me/player/play', body); }
       catch (e) { if (e.status !== 404) throw e; const id = await SP.deviceId(); if (!id) throw e; return SP.api('PUT', '/me/player/play?device_id=' + encodeURIComponent(id), body); }
     },
@@ -94,12 +109,13 @@
     // https://open.spotify.com/playlist/ID?si=… → spotify:playlist:ID (also albums and artists)
     uriFromLink(link) { const m = String(link || '').match(/open\.spotify\.com\/(?:intl-\w+\/)?(playlist|album|artist)\/([A-Za-z0-9]+)/); return m ? `spotify:${m[1]}:${m[2]}` : null; }
   };
+  function imgOf(images, small) { if (!images || !images.length) return null; const s = [...images].sort((a, b) => (a.width || 0) - (b.width || 0)); return (small ? s[0] : s.find(i => (i.width || 0) >= 120) || s[s.length - 1]).url; }
   async function tokenRequest(params) {
     const r = await fetch(TOKEN, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(params) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error === 'invalid_client' ? 'Spotify doesn’t recognise that Client ID.' : j.error === 'invalid_grant' ? 'The sign-in expired. Tap Connect Spotify again.' : `Spotify sign-in failed (${j.error || r.status}).`);
     return j;
   }
-  function store(s, t, clientId) { s.clientId = clientId; s.access = t.access_token; s.exp = Date.now() + (t.expires_in || 3600) * 1000; if (t.refresh_token) s.refresh = t.refresh_token; write(s); }
+  function store(s, t, clientId) { s.clientId = clientId; s.access = t.access_token; s.exp = Date.now() + (t.expires_in || 3600) * 1000; if (t.refresh_token) s.refresh = t.refresh_token; if (t.scope != null) s.scope = t.scope; write(s); }
   root.RepSpotify = SP;
 })(typeof window !== 'undefined' ? window : globalThis);
