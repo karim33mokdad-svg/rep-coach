@@ -40,6 +40,8 @@ Example: `workouts/2026-10-18-kb-power.json`.
   } ]
 }
 ```
+Added 27 Oct: format types `amrap` (`capSec`), `fortime` (`rounds`, `capSec`) and `intervals` (`workSec`, `restSec`, `rounds`); `emom` takes `rotate: true` for one move per minute; items can point at the exercise library with `"ex": "swing"` (ids in `library.js`), which supplies the name, the demo, the camera id and the back rating. Workouts can carry `focus`, `level`, `back` (`ok` | `care` | `load`) and `description`.
+
 A value given as `{ green, amber }` resolves by the tier chosen at check-in. A plain value applies to every tier. Unknown fields are ignored, so the format can grow without breaking older files.
 
 ## Screens and behaviour

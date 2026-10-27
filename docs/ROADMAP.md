@@ -16,13 +16,18 @@ Work top to bottom. Each milestone is done only when its acceptance criteria pas
 - [ ] Tune thresholds until counts are ≥95% and fault precision ≥80%. Document every change in `EXERCISES.md`.
 **Accept:** the fixture report meets those targets; no synthetic test regressed.
 
-## MW — Workouts section (next priority, requested 18 Oct)
-Spec: `docs/WORKOUTS_SPEC.md`. Example file: `workouts/2026-10-18-kb-power.json`.
-- [ ] Workouts tab with dated session cards, bundled (`workouts/index.json`) and pasted imports
-- [ ] Check-in with Green/Amber tiers resolving loads and swaps
-- [ ] Player for straight, EMOM, complex (per side), ladder and tabata blocks, with timers and spoken changeovers
-- [ ] Per-set logging, "Coach this set" on camera-trackable items (results logged back), "Record set" to the share sheet
-- [ ] Resume mid-session; Copy log for the coaching project; storage under `repcoach-workouts-v1` only
+## MW — Workouts section and kettlebell hub (built 27 Oct on branch `kb-hub`, awaiting the owner's phone test)
+Spec: `docs/WORKOUTS_SPEC.md`. Example file: `workouts/2026-10-18-kb-power.json`. Modelled on the pillars of a commercial kettlebell app the owner likes (programs by week, workout hub, exercise library with looping technique demos, timed player, history), with the camera coach built in.
+- [x] Tabs: Today (programs), Workouts (library, mine, build, import), Exercises, Camera (the original coach), History
+- [x] Dated session cards from `workouts/index.json` and pasted imports, with field-level errors
+- [x] Check-in with Green/Amber tiers resolving loads and swaps; Rehab mode flags workouts that load the back
+- [x] Player for straight, circuit, EMOM (classic and one-move-per-minute), AMRAP, for time, intervals/tabata, ladder and complex, with drift-free timers, beeps and spoken changeovers
+- [x] "Coach this set" hands the set to the camera and logs reps, clean reps and faults back
+- [x] Finish: per-exercise bell weight, how it felt, RPE, note; next-time suggestion (double progression)
+- [x] Resume mid-session; Copy log for the coaching project; storage under `repcoach-workouts-v1` only
+- [x] Exercise library (69 moves): how-to, active-muscle map, common mistakes, back rating, animated demo figure, your own looping clip (record or import, trimmed, kept in IndexedDB)
+- [ ] "Record set" to the share sheet
+- [ ] Owner phone test on iPhone Safari and the Home Screen app
 **Accept:** the acceptance criteria in `WORKOUTS_SPEC.md`.
 
 ## M2 — Engine and performance hardening

@@ -21,7 +21,7 @@ const fake = `window.Pose = class { constructor(){ this.i=0; } setOptions(){} on
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { window.__said = []; const S = window.SpeechSynthesisUtterance; window.speechSynthesis.speak = u => window.__said.push(u.text); });
   await p.route('**/mp/pose.js', r => r.fulfill({ contentType: 'application/javascript', body: 'window.__F=' + JSON.stringify(frames) + ';' + fake }));
-  await p.goto('http://localhost:8765/');
+  await p.goto('http://localhost:8765/?tab=camera');
   await p.evaluate(() => { localStorage.clear(); });
   await p.reload(); await p.waitForFunction(() => document.getElementById('sModel').textContent.includes('ready'));
   await p.fill('#target', '5'); await p.fill('#sets', '2'); await p.fill('#rest', '15'); await p.dispatchEvent('#rest', 'change');

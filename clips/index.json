@@ -1,0 +1,5 @@
+{
+  "schema": "repcoach.clips/v1",
+  "note": "Technique clips shipped with the app, keyed by exercise id in library.js. Only add clips you filmed yourself or have a licence to use. Clips you add on the phone are stored on the phone and take priority.",
+  "clips": {}
+}

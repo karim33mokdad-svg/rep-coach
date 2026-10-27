@@ -5,7 +5,7 @@ Camera rep counter with a live form coach. Phone on the floor or a tripod, the c
 Owner: Karim Mokdad (Dubai). Built first for his own training: kettlebells, calisthenics, running, Muay Thai and tai chi starting soon. Turns 39 on 21 Nov 2026. Recent injuries the coach must respect: left adductor strain (Sep 2026), right lower-back irritation (Oct 2026), left-shoulder pinch on the get-up support arm. Read `docs/PRD.md` first.
 
 ## Current state (v0.1, working)
-- `index.html` is a single-page PWA: exercise picker, set-up, live camera screen, summary, history.
+- `index.html` is a single-page PWA with five tabs. The original camera coach (exercise picker, set-up, live screen, summary, history) is the Camera tab; `app.js` adds Today, Workouts, Exercises and History for kettlebell training. `?tab=camera` opens straight on the camera.
 - `coach.js` is the coaching engine. It is pure logic with no DOM, and runs in the browser and in Node.
 - `mp/` holds vendored MediaPipe Pose 0.5.1675469404 (legacy Solutions API). It loads locally with a pinned jsDelivr fallback.
 - `sw.js` is a cache-first service worker, so the app works offline after the first visit. `manifest.webmanifest` and `icons/` make it installable on the Home Screen.
@@ -16,6 +16,8 @@ Owner: Karim Mokdad (Dubai). Built first for his own training: kettlebells, cali
 ```bash
 python3 -m http.server 8765        # then open http://localhost:8765 (localhost counts as secure, so the camera works)
 node tests/coach.test.js           # engine tests, must stay green
+node tests/workout.test.js         # workout engine and library, must stay green
+node tests/e2e/workouts.js         # kettlebell flow: player, camera hand-off, finish, history, import, builder
 node tests/fixtures.test.js        # replay recorded fixtures, must meet targets (--report to just print)
 node tests/e2e/flow.js             # full-flow test (needs playwright + a local server on 8765)
 node tests/e2e/recorder.js         # debug recorder flow, same setup
@@ -34,6 +36,11 @@ The camera needs HTTPS on a phone. Deploy target is GitHub Pages (`main` branch,
 ## Key files
 | File | What it is |
 |---|---|
+| `library.js` | Kettlebell library: 69 exercises (how-to, muscles, mistakes, back rating, demo pattern, camera id), glossary, workouts, programs |
+| `workout.js` | Pure workout engine: validation, tiers, timeline for every format, Build for me, progression, history ranges, log text |
+| `demo.js` | Animated side-view demo figure, used until a real clip is added |
+| `app.js` | Tabs and screens: Today, Workouts, Exercises, player, finish, History, settings, clip studio. Storage `repcoach-workouts-v1`, clips in IndexedDB `repcoach-clips` |
+| `clips/index.json` | Technique clips shipped with the app (only self-filmed or licensed) |
 | `coach.js` | Exercise library (`EX`), geometry helpers, `createTracker()` state machine, fixture format helpers (`fixture`) |
 | `tests/fixtures/` | Recorded landmark streams with hand labels, replayed by `tests/fixtures.test.js` |
 | `index.html` | UI, camera, voice, history, PWA wiring |
